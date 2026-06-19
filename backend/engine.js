@@ -68,9 +68,10 @@ function generatePacedScore(avgTarget) {
 }
 
 function raceWait(raceIndex) {
-  if ((raceIndex + 1) % 20 === 0) return Math.floor(1200000 + Math.random() * 1200000);
-  if ((raceIndex + 1) % 5 === 0)  return Math.floor(120000  + Math.random() * 120000);
-  return Math.floor(35000 + Math.random() * 15000);
+  const r = Math.random();
+  if (r < 0.03) return Math.floor(25 * 60000 + Math.random() * 20 * 60000); // 3%: 25–45 min
+  if (r < 0.18) return Math.floor(3  * 60000 + Math.random() *  5 * 60000); // 15%: 3–8 min
+  return Math.floor(45000 + Math.random() * 45000);                          // 82%: 45–90 sec
 }
 
 async function getLeaderboard() {
