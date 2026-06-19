@@ -184,6 +184,22 @@
     .log-msg.highlight { color: #4caf50; font-weight: 600; }
 
     .empty { color: #555; font-size: 13px; text-align: center; padding: 20px 0; }
+
+    .connection-bar {
+      padding: 6px 24px;
+      font-size: 12px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .connection-bar.ok      { background: #0a1f0a; color: #4caf50; }
+    .connection-bar.error   { background: #1f0a0a; color: #e53935; }
+    .connection-bar.checking{ background: #1a1a1a; color: #888; }
+    .dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
+    .dot-ok    { background: #4caf50; }
+    .dot-error { background: #e53935; }
+    .dot-check { background: #888; }
   </style>
 </head>
 <body>
@@ -192,6 +208,10 @@
   <h1>Leaderboard Campaign Manager</h1>
   <span id="status-pill" class="status-pill status-idle">Idle</span>
 </header>
+<div id="connection-bar" class="connection-bar checking">
+  <span class="dot dot-check" id="conn-dot"></span>
+  <span id="conn-text">Checking backend connection...</span>
+</div>
 
 <div class="container">
 
@@ -433,9 +453,29 @@
 
   // ─── Polling ──────────────────────────────────────────────────────────────────
 
+  function setConnectionStatus(ok, msg) {
+    const bar  = document.getElementById('connection-bar');
+    const dot  = document.getElementById('conn-dot');
+    const text = document.getElementById('conn-text');
+    if (ok === null) {
+      bar.className  = 'connection-bar checking';
+      dot.className  = 'dot dot-check';
+      text.textContent = msg;
+    } else if (ok) {
+      bar.className  = 'connection-bar ok';
+      dot.className  = 'dot dot-ok';
+      text.textContent = msg;
+    } else {
+      bar.className  = 'connection-bar error';
+      dot.className  = 'dot dot-error';
+      text.textContent = msg;
+    }
+  }
+
   async function poll() {
     try {
       const data = await api('/api/state');
+      setConnectionStatus(true, `Backend connected — ${backendUrl()}`);
       updateButtons(data.running, data.paused);
       renderIdentities(data.identities);
       renderLogs(data.logs);
@@ -443,7 +483,7 @@
         renderLeaderboard(data.leaderboard);
       }
     } catch (e) {
-      // backend not reachable — silently skip
+      setConnectionStatus(false, `Backend unreachable — check URL or wait for Render to wake up`);
     }
   }
 
