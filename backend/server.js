@@ -61,6 +61,9 @@ app.post('/api/stop', (req, res) => {
 // GET live leaderboard
 app.get('/api/leaderboard', async (req, res) => {
   const lb = await getLeaderboard();
+  if (lb && lb.top && lb.top.length > 0) {
+    state.leaderboard = lb.top;
+  }
   res.json(lb || { top: [] });
 });
 

@@ -347,9 +347,6 @@ async function startCampaign(config, parallelCount = 1) {
   return { ok: true };
 }
 
-  return { ok: true };
-}
-
 function pauseCampaign() {
   state.paused = true;
   log('Campaign paused');
