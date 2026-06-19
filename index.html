@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Leaderboard Campaign Manager</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', sans-serif; background: #0f0f0f; color: #e0e0e0; min-height: 100vh; }
+
+    header {
+      background: #1a1a1a;
+      border-bottom: 1px solid #2a2a2a;
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    header h1 { font-size: 18px; font-weight: 600; color: #fff; }
+    .status-pill {
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .status-idle     { background: #2a2a2a; color: #888; }
+    .status-running  { background: #1a3a1a; color: #4caf50; }
+    .status-paused   { background: #3a2a00; color: #ffc107; }
+    .status-complete { background: #1a1a3a; color: #7986cb; }
+
+    .container { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: auto auto; gap: 16px; padding: 16px; }
+
+    .card {
+      background: #1a1a1a;
+      border: 1px solid #2a2a2a;
+      border-radius: 10px;
+      padding: 20px;
+    }
+    .card h2 { font-size: 13px; font-weight: 600; color: #888; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 16px; }
+
+    /* CONFIG PANEL */
+    #config-panel { grid-column: 1; grid-row: 1; }
+    .identity-row {
+      display: grid;
+      grid-template-columns: 24px 1fr 1fr auto;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .identity-row .idx { color: #555; font-size: 12px; text-align: right; }
+    select, input[type=number] {
+      background: #111;
+      border: 1px solid #333;
+      color: #e0e0e0;
+      border-radius: 6px;
+      padding: 6px 10px;
+      font-size: 13px;
+      width: 100%;
+    }
+    select:focus, input:focus { outline: none; border-color: #4caf50; }
+    .btn-remove {
+      background: none;
+      border: none;
+      color: #555;
+      cursor: pointer;
+      font-size: 16px;
+      padding: 0 4px;
+      transition: color 0.2s;
+    }
+    .btn-remove:hover { color: #e53935; }
+    .btn-add {
+      background: #1a2a1a;
+      border: 1px dashed #4caf50;
+      color: #4caf50;
+      border-radius: 6px;
+      padding: 8px;
+      width: 100%;
+      cursor: pointer;
+      font-size: 13px;
+      margin-top: 4px;
+      transition: background 0.2s;
+    }
+    .btn-add:hover { background: #1e3a1e; }
+
+    .actions { display: flex; gap: 8px; margin-top: 16px; }
+    .btn {
+      flex: 1;
+      padding: 10px;
+      border-radius: 8px;
+      border: none;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .btn:disabled { opacity: 0.3; cursor: not-allowed; }
+    .btn-start  { background: #4caf50; color: #000; }
+    .btn-pause  { background: #ffc107; color: #000; }
+    .btn-resume { background: #2196f3; color: #fff; }
+    .btn-stop   { background: #e53935; color: #fff; }
+
+    .backend-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+      align-items: center;
+    }
+    .backend-row input { flex: 1; }
+    .backend-row span { font-size: 12px; color: #555; white-space: nowrap; }
+
+    /* LEADERBOARD */
+    #leaderboard-panel { grid-column: 2; grid-row: 1; }
+    .lb-row {
+      display: grid;
+      grid-template-columns: 28px 1fr 100px 60px;
+      gap: 8px;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid #1f1f1f;
+      font-size: 13px;
+    }
+    .lb-row:last-child { border-bottom: none; }
+    .lb-rank { color: #888; font-size: 12px; font-weight: 600; }
+    .lb-rank.top1 { color: #ffd700; }
+    .lb-rank.top2 { color: #c0c0c0; }
+    .lb-rank.top3 { color: #cd7f32; }
+    .lb-name { font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .lb-score { color: #4caf50; font-weight: 600; font-variant-numeric: tabular-nums; }
+    .lb-games { color: #555; font-size: 12px; }
+    .lb-refresh { font-size: 12px; color: #555; margin-top: 12px; cursor: pointer; }
+    .lb-refresh:hover { color: #4caf50; }
+
+    /* IDENTITY STATUS */
+    #identity-panel { grid-column: 1 / 3; grid-row: 2; }
+    .identity-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+    .id-card {
+      background: #111;
+      border: 1px solid #2a2a2a;
+      border-radius: 8px;
+      padding: 14px;
+    }
+    .id-card.running  { border-color: #2e5c2e; }
+    .id-card.reached  { border-color: #4caf50; }
+    .id-card.stopped  { border-color: #555; }
+    .id-card.unreachable { border-color: #e53935; }
+    .id-card.completed { border-color: #7986cb; }
+
+    .id-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+    .id-name { font-weight: 600; font-size: 14px; }
+    .id-badge {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      padding: 2px 8px;
+      border-radius: 10px;
+      letter-spacing: 0.5px;
+    }
+    .badge-pending     { background: #2a2a2a; color: #888; }
+    .badge-running     { background: #1a3a1a; color: #4caf50; }
+    .badge-reached     { background: #1a3a1a; color: #4caf50; }
+    .badge-completed   { background: #1a1a3a; color: #7986cb; }
+    .badge-stopped     { background: #2a2a2a; color: #888; }
+    .badge-unreachable { background: #3a1a1a; color: #e53935; }
+
+    .id-email { font-size: 11px; color: #555; margin-bottom: 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .id-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    .id-stat { background: #1a1a1a; border-radius: 6px; padding: 8px 10px; }
+    .id-stat-label { font-size: 10px; color: #555; text-transform: uppercase; letter-spacing: 0.3px; }
+    .id-stat-value { font-size: 15px; font-weight: 600; color: #e0e0e0; margin-top: 2px; }
+    .id-progress { margin-top: 10px; }
+    .progress-bar { height: 4px; background: #2a2a2a; border-radius: 2px; overflow: hidden; }
+    .progress-fill { height: 100%; background: #4caf50; border-radius: 2px; transition: width 0.5s; }
+    .progress-label { font-size: 11px; color: #555; margin-top: 4px; }
+
+    /* LOGS */
+    #log-panel { grid-column: 1 / 3; grid-row: 3; }
+    #log-panel .card { max-height: 280px; }
+    .log-box { overflow-y: auto; max-height: 220px; font-size: 12px; font-family: 'Courier New', monospace; }
+    .log-entry { padding: 3px 0; border-bottom: 1px solid #1a1a1a; display: flex; gap: 10px; }
+    .log-time { color: #555; white-space: nowrap; flex-shrink: 0; }
+    .log-msg { color: #ccc; }
+    .log-msg.highlight { color: #4caf50; font-weight: 600; }
+
+    .empty { color: #555; font-size: 13px; text-align: center; padding: 20px 0; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Leaderboard Campaign Manager</h1>
+  <span id="status-pill" class="status-pill status-idle">Idle</span>
+</header>
+
+<div class="container">
+
+  <!-- CONFIG -->
+  <div class="card" id="config-panel">
+    <h2>Campaign Config</h2>
+
+    <div class="backend-row">
+      <input type="text" id="backend-url" placeholder="Backend URL (e.g. https://xxx.railway.app)" value="http://localhost:3001" />
+      <span>Backend URL</span>
+    </div>
+
+    <div style="display:grid;grid-template-columns:24px 1fr 1fr auto;gap:8px;margin-bottom:6px;">
+      <span></span>
+      <span style="font-size:11px;color:#555;">Target Rank</span>
+      <span style="font-size:11px;color:#555;">Max Races</span>
+      <span></span>
+    </div>
+
+    <div id="identity-list"></div>
+    <button class="btn-add" onclick="addIdentityRow()">+ Add Identity</button>
+
+    <div class="actions">
+      <button class="btn btn-start"  id="btn-start"  onclick="startCampaign()">Start</button>
+      <button class="btn btn-pause"  id="btn-pause"  onclick="pauseCampaign()"  disabled>Pause</button>
+      <button class="btn btn-resume" id="btn-resume" onclick="resumeCampaign()" disabled>Resume</button>
+      <button class="btn btn-stop"   id="btn-stop"   onclick="stopCampaign()"   disabled>Stop</button>
+    </div>
+  </div>
+
+  <!-- LEADERBOARD -->
+  <div class="card" id="leaderboard-panel">
+    <h2>Live Leaderboard</h2>
+    <div id="lb-rows"><div class="empty">Not loaded yet</div></div>
+    <div class="lb-refresh" onclick="refreshLeaderboard()">↻ Refresh manually</div>
+  </div>
+
+  <!-- IDENTITIES -->
+  <div id="identity-panel">
+    <div class="card">
+      <h2>Identity Progress</h2>
+      <div id="identity-cards" class="identity-cards">
+        <div class="empty">Start a campaign to see identity progress</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LOGS -->
+  <div id="log-panel">
+    <div class="card">
+      <h2>Live Logs</h2>
+      <div class="log-box" id="log-box">
+        <div class="empty">Logs will appear here</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // ─── Config Rows ─────────────────────────────────────────────────────────────
+
+  let identityRows = [
+    { targetRank: 2,  races: 101 },
+    { targetRank: 3,  races: 101 },
+    { targetRank: 4,  races: 101 },
+    { targetRank: 5,  races: 101 },
+    { targetRank: 6,  races: 101 },
+    { targetRank: 7,  races: 101 },
+    { targetRank: 8,  races: 101 },
+    { targetRank: 9,  races: 101 },
+    { targetRank: 10, races: 101 },
+  ];
+
+  function renderConfigRows() {
+    const list = document.getElementById('identity-list');
+    list.innerHTML = identityRows.map((row, i) => `
+      <div class="identity-row">
+        <span class="idx">${i + 1}</span>
+        <select onchange="updateRow(${i}, 'targetRank', +this.value)">
+          ${[1,2,3,4,5,6,7,8,9,10].map(r =>
+            `<option value="${r}" ${row.targetRank === r ? 'selected' : ''}>#${r}</option>`
+          ).join('')}
+        </select>
+        <input type="number" min="1" max="101" value="${row.races}"
+          onchange="updateRow(${i}, 'races', +this.value)" />
+        <button class="btn-remove" onclick="removeRow(${i})">✕</button>
+      </div>
+    `).join('');
+  }
+
+  function updateRow(i, key, val) {
+    identityRows[i][key] = val;
+  }
+
+  function addIdentityRow() {
+    identityRows.push({ targetRank: 1, races: 101 });
+    renderConfigRows();
+  }
+
+  function removeRow(i) {
+    identityRows.splice(i, 1);
+    renderConfigRows();
+  }
+
+  renderConfigRows();
+
+  // ─── API Calls ────────────────────────────────────────────────────────────────
+
+  function backendUrl() {
+    return document.getElementById('backend-url').value.replace(/\/$/, '');
+  }
+
+  async function api(path, method = 'GET', body = null) {
+    const opts = {
+      method,
+      headers: { 'Content-Type': 'application/json' }
+    };
+    if (body) opts.body = JSON.stringify(body);
+    const resp = await fetch(backendUrl() + path, opts);
+    return resp.json();
+  }
+
+  async function startCampaign() {
+    if (identityRows.length === 0) return alert('Add at least one identity');
+    const result = await api('/api/start', 'POST', { config: identityRows });
+    if (result.error) alert(result.error);
+  }
+
+  async function pauseCampaign()  { await api('/api/pause',  'POST'); }
+  async function resumeCampaign() { await api('/api/resume', 'POST'); }
+  async function stopCampaign()   { await api('/api/stop',   'POST'); }
+
+  async function refreshLeaderboard() {
+    const data = await api('/api/leaderboard');
+    renderLeaderboard(data.top || []);
+  }
+
+  // ─── Render ───────────────────────────────────────────────────────────────────
+
+  function renderLeaderboard(top) {
+    const el = document.getElementById('lb-rows');
+    if (!top || top.length === 0) {
+      el.innerHTML = '<div class="empty">No data</div>';
+      return;
+    }
+    el.innerHTML = top.map(p => `
+      <div class="lb-row">
+        <span class="lb-rank ${p.rank===1?'top1':p.rank===2?'top2':p.rank===3?'top3':''}">#${p.rank}</span>
+        <span class="lb-name" title="${p.name}">${p.name}</span>
+        <span class="lb-score">${p.totalScore.toLocaleString()}</span>
+        <span class="lb-games">${p.gamesPlayed}g</span>
+      </div>
+    `).join('');
+  }
+
+  function renderIdentities(identities) {
+    const el = document.getElementById('identity-cards');
+    if (!identities || identities.length === 0) {
+      el.innerHTML = '<div class="empty">Start a campaign to see identity progress</div>';
+      return;
+    }
+    el.innerHTML = identities.map(id => {
+      const pct = id.races > 0 ? Math.min(100, Math.round((id.racesPlayed / id.races) * 100)) : 0;
+      const gap = id.targetScore ? Math.max(0, id.targetScore - id.totalScore) : '—';
+      const nextRace = id.nextRaceIn > 0 ? `Next race in ${id.nextRaceIn}s` : '';
+
+      return `
+        <div class="id-card ${id.status}">
+          <div class="id-header">
+            <span class="id-name">${id.name}</span>
+            <span class="id-badge badge-${id.status}">${id.status}</span>
+          </div>
+          <div class="id-email">${id.email}</div>
+          <div class="id-stats">
+            <div class="id-stat">
+              <div class="id-stat-label">Target</div>
+              <div class="id-stat-value">Rank #${id.targetRank}</div>
+            </div>
+            <div class="id-stat">
+              <div class="id-stat-label">Total Score</div>
+              <div class="id-stat-value">${id.totalScore.toLocaleString()}</div>
+            </div>
+            <div class="id-stat">
+              <div class="id-stat-label">Games</div>
+              <div class="id-stat-value">${id.racesPlayed} / ${id.races}</div>
+            </div>
+            <div class="id-stat">
+              <div class="id-stat-label">Gap to #${id.targetRank}</div>
+              <div class="id-stat-value">${typeof gap === 'number' ? gap.toLocaleString() : gap}</div>
+            </div>
+          </div>
+          <div class="id-progress">
+            <div class="progress-bar">
+              <div class="progress-fill" style="width:${pct}%"></div>
+            </div>
+            <div class="progress-label">${pct}% ${nextRace}</div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function renderLogs(logs) {
+    const el = document.getElementById('log-box');
+    if (!logs || logs.length === 0) {
+      el.innerHTML = '<div class="empty">No logs yet</div>';
+      return;
+    }
+    el.innerHTML = logs.map(l => {
+      const highlight = l.msg.includes('REACHED') || l.msg.includes('complete') || l.msg.includes('★');
+      return `
+        <div class="log-entry">
+          <span class="log-time">${l.time.slice(11, 19)}</span>
+          <span class="log-msg ${highlight ? 'highlight' : ''}">${l.msg}</span>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function updateButtons(running, paused) {
+    document.getElementById('btn-start').disabled  = running;
+    document.getElementById('btn-pause').disabled  = !running || paused;
+    document.getElementById('btn-resume').disabled = !running || !paused;
+    document.getElementById('btn-stop').disabled   = !running;
+
+    const pill = document.getElementById('status-pill');
+    if (!running && !paused) {
+      pill.className = 'status-pill status-idle';
+      pill.textContent = 'Idle';
+    } else if (paused) {
+      pill.className = 'status-pill status-paused';
+      pill.textContent = 'Paused';
+    } else if (running) {
+      pill.className = 'status-pill status-running';
+      pill.textContent = 'Running';
+    }
+  }
+
+  // ─── Polling ──────────────────────────────────────────────────────────────────
+
+  async function poll() {
+    try {
+      const data = await api('/api/state');
+      updateButtons(data.running, data.paused);
+      renderIdentities(data.identities);
+      renderLogs(data.logs);
+      if (data.leaderboard && data.leaderboard.length > 0) {
+        renderLeaderboard(data.leaderboard);
+      }
+    } catch (e) {
+      // backend not reachable — silently skip
+    }
+  }
+
+  // Poll every 4 seconds
+  setInterval(poll, 4000);
+
+  // Load leaderboard on page open
+  refreshLeaderboard();
+</script>
+
+</body>
+</html>
