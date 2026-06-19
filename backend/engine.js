@@ -58,6 +58,7 @@ function generateHumanPickups() {
   return 15 + Math.floor(Math.random() * 2);
 }
 
+// Score per race: clamp to [380, 499], vary ±30 around avgTarget
 function generatePacedScore(avgTarget) {
   const MIN = 380;
   const MAX = 499;
@@ -67,18 +68,11 @@ function generatePacedScore(avgTarget) {
   return Math.max(MIN, Math.min(MAX, raw));
 }
 
-// Human-like wait between races: 35–50 seconds
+// Human-like wait between races
 function raceWait(raceIndex) {
-  // Every 5th race take a longer break (2–4 min)
-  if ((raceIndex + 1) % 5 === 0) {
-    return Math.floor(120000 + Math.random() * 120000); // 2–4 min
-  }
-  // Every 20th race take a big break (20–40 min)
-  if ((raceIndex + 1) % 20 === 0) {
-    return Math.floor(1200000 + Math.random() * 1200000); // 20–40 min
-  }
-  // Normal: 35–50 seconds
-  return Math.floor(35000 + Math.random() * 15000);
+  if ((raceIndex + 1) % 20 === 0) return Math.floor(1200000 + Math.random() * 1200000); // 20–40 min
+  if ((raceIndex + 1) % 5 === 0)  return Math.floor(120000  + Math.random() * 120000);  // 2–4 min
+  return Math.floor(35000 + Math.random() * 15000); // 35–50 sec
 }
 
 async function getLeaderboard() {
@@ -133,26 +127,42 @@ function sleep(ms) {
   return new Promise(r => setTimeout(r, ms));
 }
 
-// Global campaign state — shared with server.js via reference
+// Shared state
 const state = {
   running: false,
   paused: false,
-  identities: [],       // live status of each identity
-  leaderboard: [],      // latest top 10
-  logs: [],             // rolling log of last 200 events
+  identities: [],
+  leaderboard: [],
+  logs: [],
   startedAt: null,
   completedAt: null,
 };
 
 function log(msg, identityIndex = null) {
-  const entry = {
-    time: new Date().toISOString(),
-    msg,
-    identityIndex
-  };
+  const entry = { time: new Date().toISOString(), msg, identityIndex };
   state.logs.unshift(entry);
   if (state.logs.length > 200) state.logs.pop();
   console.log(`[${entry.time}] ${msg}`);
+}
+
+// Fetch leaderboard and return the score needed to beat rank N.
+// If cfg.desiredScore is set, use that directly instead.
+async function resolveTargetScore(identity) {
+  // If user manually set a desired score, use it
+  if (identity.desiredScore && identity.desiredScore > 0) {
+    return identity.desiredScore;
+  }
+
+  const lb = await getLeaderboard();
+  if (!lb || !lb.top || lb.top.length === 0) return null;
+
+  state.leaderboard = lb.top;
+  const sorted = [...lb.top].sort((a, b) => a.rank - b.rank);
+  const targetPlayer = sorted[identity.targetRank - 1];
+  if (!targetPlayer) return null;
+
+  // Beat the current holder of that rank by 1 point
+  return targetPlayer.totalScore + 1;
 }
 
 async function runIdentity(identityIndex) {
@@ -160,42 +170,37 @@ async function runIdentity(identityIndex) {
   identity.status = 'running';
   identity.startedAt = new Date().toISOString();
 
-  log(`Starting: ${identity.name} | ${identity.email} | Target Rank #${identity.targetRank}`, identityIndex);
+  const modeStr = identity.desiredScore > 0
+    ? `Target Score: ${identity.desiredScore}`
+    : `Target Rank: #${identity.targetRank}`;
+  log(`Starting: ${identity.name} | ${identity.email} | ${modeStr}`, identityIndex);
 
-  // Fetch live leaderboard for target score
-  const lb = await getLeaderboard();
-  let targetScore = null;
-  let avgScoreNeeded = 437; // safe default
+  // Initial target resolution
+  let targetScore = await resolveTargetScore(identity);
 
-  if (lb && lb.top && lb.top.length > 0) {
-    state.leaderboard = lb.top;
-    const sorted = [...lb.top].sort((a, b) => a.rank - b.rank);
-    const targetPlayer = sorted[identity.targetRank - 1];
-
-    if (targetPlayer) {
-      targetScore = targetPlayer.totalScore + 1;
-      avgScoreNeeded = Math.ceil(targetScore / identity.races);
-      identity.targetScore = targetScore;
-      identity.avgNeeded = avgScoreNeeded;
-
-      const maxPossible = identity.races * 499;
-      if (targetScore > maxPossible) {
-        identity.status = 'unreachable';
-        log(`UNREACHABLE: ${identity.name} needs ${targetScore} but max is ${maxPossible}`, identityIndex);
-        return;
-      }
-
-      log(`${identity.name} needs ${targetScore} pts | avg ${avgScoreNeeded}/race over ${identity.races} races`, identityIndex);
+  if (targetScore === null) {
+    // No leaderboard data and no manual score — use max possible strategy
+    targetScore = identity.races * 499;
+    log(`${identity.name}: no leaderboard data, aiming for max ${targetScore}`, identityIndex);
+  } else {
+    identity.targetScore = targetScore;
+    const maxPossible = (identity.races * 499);
+    if (targetScore > maxPossible) {
+      identity.status = 'unreachable';
+      log(`UNREACHABLE: ${identity.name} needs ${targetScore} but max possible is ${maxPossible} (${identity.races} races × 499)`, identityIndex);
+      return;
     }
+    log(`${identity.name} needs ${targetScore} pts | ${identity.races} races remaining`, identityIndex);
   }
 
-  let dynamicAvg = avgScoreNeeded;
   let consecutiveErrors = 0;
   let lastTargetRefresh = Date.now();
+  const REFRESH_INTERVAL = 20 * 1000; // 20 seconds
 
   for (let i = 0; i < identity.races; i++) {
-    // Re-fetch leaderboard every 30 minutes to keep target score fresh
-    if (Date.now() - lastTargetRefresh > 20 * 1000) {
+
+    // --- Refresh target score every 20 seconds ---
+    if (!identity.desiredScore && Date.now() - lastTargetRefresh > REFRESH_INTERVAL) {
       const freshLb = await getLeaderboard();
       if (freshLb && freshLb.top && freshLb.top.length > 0) {
         state.leaderboard = freshLb.top;
@@ -204,15 +209,26 @@ async function runIdentity(identityIndex) {
         if (tp) {
           const newTarget = tp.totalScore + 1;
           if (newTarget !== targetScore) {
-            log(`${identity.name} target updated: ${targetScore} → ${newTarget} (rank #${identity.targetRank} changed)`, identityIndex);
+            log(`${identity.name} ⚡ target updated: ${targetScore} → ${newTarget} (rank #${identity.targetRank} changed)`, identityIndex);
             targetScore = newTarget;
             identity.targetScore = targetScore;
+
+            // Immediately recheck if now unreachable
+            const racesLeft = identity.races - i;
+            const scoreLeft = targetScore - identity.totalScore;
+            const maxLeft = racesLeft * 499;
+            if (scoreLeft > maxLeft) {
+              identity.status = 'unreachable';
+              log(`UNREACHABLE: ${identity.name} now needs ${scoreLeft} more in ${racesLeft} races (max ${maxLeft})`, identityIndex);
+              return;
+            }
           }
         }
       }
       lastTargetRefresh = Date.now();
     }
-    // Check for pause or stop
+
+    // --- Pause / stop checks ---
     while (state.paused && state.running) {
       await sleep(2000);
     }
@@ -222,6 +238,14 @@ async function runIdentity(identityIndex) {
       return;
     }
 
+    // --- Recalculate dynamic avg before each race ---
+    const racesLeft = identity.races - i;
+    const scoreLeft = Math.max(0, targetScore - identity.totalScore);
+    // dynamicAvg = how much we need per remaining race, clamped to [380,499]
+    const dynamicAvg = racesLeft > 0 ? Math.min(499, Math.max(380, Math.ceil(scoreLeft / racesLeft))) : 499;
+    identity.avgNeeded = dynamicAvg;
+
+    // --- Submit race ---
     let result = await submitScore(identity.name, identity.email, dynamicAvg);
 
     // Rate limit recovery
@@ -241,52 +265,74 @@ async function runIdentity(identityIndex) {
     consecutiveErrors = 0;
     const { payload, data } = result;
 
-    // Update identity state
     identity.racesPlayed = data.gamesPlayed;
-    identity.totalScore = data.totalScore;
-    identity.lastScore = payload.score;
-    identity.lastRaceTime = payload.raceTimeSeconds;
-    identity.lastPickups = payload.pickups;
+    identity.totalScore  = data.totalScore;
+    identity.lastScore   = payload.score;
 
-    // Recalculate dynamic avg
-    if (targetScore && data.totalScore < targetScore) {
-      const remaining = targetScore - data.totalScore;
-      const remainingRaces = identity.races - data.gamesPlayed;
-      if (remainingRaces > 0) {
-        dynamicAvg = Math.ceil(remaining / remainingRaces);
-        identity.avgNeeded = dynamicAvg;
-      }
-    }
-
-    const gap = targetScore ? Math.max(0, targetScore - data.totalScore) : '?';
+    const gap = Math.max(0, targetScore - data.totalScore);
     log(
-      `${identity.name} | Race ${i+1}/${identity.races} | +${payload.score} | Total: ${data.totalScore} | Gap to #${identity.targetRank}: ${gap}`,
+      `${identity.name} | Race ${i+1}/${identity.races} | +${payload.score} | Total: ${data.totalScore} | Gap: ${gap} | Avg needed: ${dynamicAvg}`,
       identityIndex
     );
 
-    // Check if target reached
-    if (targetScore && data.totalScore >= targetScore) {
+    // --- Check if target reached ---
+    if (data.totalScore >= targetScore) {
       identity.status = 'reached';
       identity.completedAt = new Date().toISOString();
-      log(`★ RANK #${identity.targetRank} REACHED! ${identity.name} — ${data.totalScore} pts in ${data.gamesPlayed} games`, identityIndex);
-
-      // Refresh leaderboard
+      const label = identity.desiredScore > 0 ? `score ${identity.desiredScore}` : `rank #${identity.targetRank}`;
+      log(`★ TARGET REACHED! ${identity.name} — ${data.totalScore} pts in ${data.gamesPlayed} games (target: ${label})`, identityIndex);
       const updated = await getLeaderboard();
       if (updated && updated.top) state.leaderboard = updated.top;
       return;
     }
 
-    // Human wait between races
+    // --- Wait before next race (skip wait on last race) ---
     if (i < identity.races - 1) {
       const wait = raceWait(i);
       identity.nextRaceIn = Math.round(wait / 1000);
       log(`${identity.name} waiting ${Math.round(wait/1000)}s until next race`, identityIndex);
-      await sleep(wait);
+
+      // During long waits, refresh target score every 20s instead of waiting blindly
+      const waitEnd = Date.now() + wait;
+      while (Date.now() < waitEnd) {
+        const remaining = waitEnd - Date.now();
+        const chunk = Math.min(remaining, REFRESH_INTERVAL);
+        await sleep(chunk);
+        identity.nextRaceIn = Math.round((waitEnd - Date.now()) / 1000);
+
+        // Refresh leaderboard mid-wait if not using manual score
+        if (!identity.desiredScore && Date.now() - lastTargetRefresh > REFRESH_INTERVAL) {
+          const freshLb = await getLeaderboard();
+          if (freshLb && freshLb.top && freshLb.top.length > 0) {
+            state.leaderboard = freshLb.top;
+            const sorted = [...freshLb.top].sort((a, b) => a.rank - b.rank);
+            const tp = sorted[identity.targetRank - 1];
+            if (tp) {
+              const newTarget = tp.totalScore + 1;
+              if (newTarget !== targetScore) {
+                log(`${identity.name} ⚡ target updated mid-wait: ${targetScore} → ${newTarget}`, identityIndex);
+                targetScore = newTarget;
+                identity.targetScore = targetScore;
+              }
+            }
+          }
+          lastTargetRefresh = Date.now();
+        }
+
+        // Check for pause/stop during the wait
+        if (!state.running) {
+          identity.status = 'stopped';
+          identity.nextRaceIn = 0;
+          log(`Stopped: ${identity.name}`, identityIndex);
+          return;
+        }
+        while (state.paused && state.running) await sleep(2000);
+      }
+
       identity.nextRaceIn = 0;
     }
   }
 
-  // Completed all races without hitting target
   identity.status = 'completed';
   identity.completedAt = new Date().toISOString();
   log(`Completed all ${identity.races} races: ${identity.name} — final score ${identity.totalScore}`, identityIndex);
@@ -312,7 +358,8 @@ async function startCampaign(config, parallelCount = 1) {
       index: i,
       name: identity.name,
       email: identity.email,
-      targetRank: cfg.targetRank,
+      targetRank:   cfg.targetRank   || 1,
+      desiredScore: cfg.desiredScore || 0,   // 0 = not set, use rank mode
       races: cfg.races,
       status: 'pending',
       racesPlayed: 0,
@@ -320,17 +367,14 @@ async function startCampaign(config, parallelCount = 1) {
       targetScore: null,
       avgNeeded: null,
       lastScore: null,
-      lastRaceTime: null,
-      lastPickups: null,
       nextRaceIn: 0,
       startedAt: null,
       completedAt: null,
     };
   });
 
-  log(`Campaign started — ${state.identities.length} identities, ${parallelCount} running in parallel`);
+  log(`Campaign started — ${state.identities.length} identities, ${parallelCount} in parallel`);
 
-  // Run identities in batches of parallelCount
   (async () => {
     const total = state.identities.length;
     for (let i = 0; i < total; i += parallelCount) {

@@ -64,13 +64,13 @@
     .field-row input, .field-row select { flex: 1; }
 
     .col-headers {
-      display: grid; grid-template-columns: 22px 1fr 1fr 28px;
+      display: grid; grid-template-columns: 22px 1fr 1fr 1fr 28px;
       gap: 6px; margin-bottom: 4px; padding: 0 2px;
     }
     .col-headers span { font-size: 10px; color: #444; text-transform: uppercase; }
 
     .identity-row {
-      display: grid; grid-template-columns: 22px 1fr 1fr 28px;
+      display: grid; grid-template-columns: 22px 1fr 1fr 1fr 28px;
       gap: 6px; align-items: center; margin-bottom: 6px;
     }
     .identity-row .idx { color: #444; font-size: 11px; text-align: right; }
@@ -226,7 +226,7 @@
       #log-panel       { grid-column: 1; }
       header h1 { font-size: 14px; }
       .status-pill { font-size: 10px; padding: 3px 9px; }
-      .col-headers, .identity-row { grid-template-columns: 18px 1fr 1fr 24px; gap: 5px; }
+      .col-headers, .identity-row { grid-template-columns: 18px 1fr 1fr 1fr 24px; gap: 5px; }
       .btn { font-size: 11px; padding: 9px 4px; }
       .identity-cards { grid-template-columns: 1fr; }
       .field-row { flex-direction: column; align-items: flex-start; gap: 4px; }
@@ -289,6 +289,7 @@
     <div class="col-headers">
       <span></span>
       <span>Target Rank</span>
+      <span>Score (optional)</span>
       <span>Max Races</span>
       <span></span>
     </div>
@@ -343,15 +344,15 @@
 <script>
   // ─── Config ──────────────────────────────────────────────────────────────────
   let identityRows = [
-    { targetRank: 2,  races: 101 },
-    { targetRank: 3,  races: 101 },
-    { targetRank: 4,  races: 101 },
-    { targetRank: 5,  races: 101 },
-    { targetRank: 6,  races: 101 },
-    { targetRank: 7,  races: 101 },
-    { targetRank: 8,  races: 101 },
-    { targetRank: 9,  races: 101 },
-    { targetRank: 10, races: 101 },
+    { targetRank: 2,  desiredScore: 0, races: 101 },
+    { targetRank: 3,  desiredScore: 0, races: 101 },
+    { targetRank: 4,  desiredScore: 0, races: 101 },
+    { targetRank: 5,  desiredScore: 0, races: 101 },
+    { targetRank: 6,  desiredScore: 0, races: 101 },
+    { targetRank: 7,  desiredScore: 0, races: 101 },
+    { targetRank: 8,  desiredScore: 0, races: 101 },
+    { targetRank: 9,  desiredScore: 0, races: 101 },
+    { targetRank: 10, desiredScore: 0, races: 101 },
   ];
 
   function renderConfigRows() {
@@ -363,6 +364,9 @@
             `<option value="${r}"${row.targetRank===r?' selected':''}>#${r}</option>`
           ).join('')}
         </select>
+        <input type="number" min="0" placeholder="auto" value="${row.desiredScore || ''}"
+          onchange="updateRow(${i},'desiredScore',+this.value||0)"
+          title="Leave 0/blank to auto-target rank. Enter a score to override." />
         <input type="number" min="1" max="101" value="${row.races}"
           onchange="updateRow(${i},'races',+this.value)" />
         <button class="btn-remove" onclick="removeRow(${i})">✕</button>
@@ -370,7 +374,7 @@
     `).join('');
   }
   function updateRow(i, k, v) { identityRows[i][k] = v; }
-  function addIdentityRow()   { identityRows.push({ targetRank: 1, races: 101 }); renderConfigRows(); }
+  function addIdentityRow()   { identityRows.push({ targetRank: 1, desiredScore: 0, races: 101 }); renderConfigRows(); }
   function removeRow(i)       { identityRows.splice(i, 1); renderConfigRows(); }
   renderConfigRows();
 
@@ -441,6 +445,8 @@
       const pct = id.races > 0 ? Math.min(100, Math.round((id.racesPlayed/id.races)*100)) : 0;
       const gap = id.targetScore ? Math.max(0, id.targetScore - id.totalScore) : '—';
       const next = id.nextRaceIn > 0 ? `Next race in ${id.nextRaceIn}s` : '';
+      const modeLabel = id.desiredScore > 0 ? `Score ${id.desiredScore.toLocaleString()}` : `Rank #${id.targetRank}`;
+      const targetLabel = id.targetScore ? id.targetScore.toLocaleString() : (id.desiredScore > 0 ? id.desiredScore.toLocaleString() : 'Fetching...');
       return `
         <div class="id-card ${id.status}">
           <div class="id-header">
@@ -450,8 +456,12 @@
           <div class="id-email">${id.email}</div>
           <div class="id-stats">
             <div class="id-stat">
-              <div class="id-stat-label">Target</div>
-              <div class="id-stat-value">Rank #${id.targetRank}</div>
+              <div class="id-stat-label">Goal</div>
+              <div class="id-stat-value">${modeLabel}</div>
+            </div>
+            <div class="id-stat">
+              <div class="id-stat-label">Target Score</div>
+              <div class="id-stat-value">${targetLabel}</div>
             </div>
             <div class="id-stat">
               <div class="id-stat-label">Total Score</div>
@@ -462,8 +472,12 @@
               <div class="id-stat-value">${id.racesPlayed} / ${id.races}</div>
             </div>
             <div class="id-stat">
-              <div class="id-stat-label">Gap to #${id.targetRank}</div>
+              <div class="id-stat-label">Gap Left</div>
               <div class="id-stat-value">${typeof gap==='number'?gap.toLocaleString():gap}</div>
+            </div>
+            <div class="id-stat">
+              <div class="id-stat-label">Avg Needed</div>
+              <div class="id-stat-value">${id.avgNeeded || '—'}</div>
             </div>
           </div>
           <div class="id-progress">
