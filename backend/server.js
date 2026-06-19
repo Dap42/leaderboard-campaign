@@ -64,5 +64,10 @@ app.get('/api/leaderboard', async (req, res) => {
   res.json(lb || { top: [] });
 });
 
+// Health check endpoint — UptimeRobot pings this to keep server warm
+app.get('/health', (req, res) => {
+  res.json({ ok: true, uptime: process.uptime() });
+});
+
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => console.log(`Backend running on port ${PORT}`));
