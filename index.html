@@ -30,16 +30,26 @@
     .status-paused   { background: #3a2a00; color: #ffc107; }
     .status-complete { background: #1a1a3a; color: #7986cb; }
 
-    .container { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: auto auto; gap: 16px; padding: 16px; }
+    .container { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 16px; }
 
     @media (max-width: 768px) {
-      .container { grid-template-columns: 1fr; }
-      #config-panel    { grid-column: 1; grid-row: 1; }
-      #leaderboard-panel { grid-column: 1; grid-row: 2; }
-      #identity-panel  { grid-column: 1; grid-row: 3; }
-      #log-panel       { grid-column: 1; grid-row: 4; }
-      .actions { flex-wrap: wrap; }
-      .btn { min-width: 45%; }
+      .container { grid-template-columns: 1fr; padding: 10px; gap: 10px; }
+      #config-panel    { grid-column: 1; grid-row: auto; }
+      #leaderboard-panel { grid-column: 1; grid-row: auto; }
+      #identity-panel  { grid-column: 1; grid-row: auto; }
+      #log-panel       { grid-column: 1; grid-row: auto; }
+      header { padding: 12px 16px; }
+      header h1 { font-size: 15px; }
+      .actions { flex-wrap: wrap; gap: 6px; }
+      .btn { flex: 1 1 45%; font-size: 12px; padding: 8px; }
+      .identity-row { grid-template-columns: 20px 1fr 1fr auto; gap: 6px; }
+      .id-stats { grid-template-columns: 1fr 1fr; }
+      .identity-cards { grid-template-columns: 1fr; }
+      .backend-row { flex-direction: column; align-items: flex-start; gap: 4px; }
+      .backend-row span { font-size: 11px; }
+      .backend-row input, .backend-row select { width: 100%; }
+      .card { padding: 14px; }
+      .lb-row { grid-template-columns: 24px 1fr 80px 50px; font-size: 12px; }
     }
 
     .card {
@@ -236,6 +246,18 @@
       <span>Backend URL</span>
     </div>
 
+    <div class="backend-row">
+      <select id="parallel-count" style="flex:1">
+        <option value="1">1 at a time (safest)</option>
+        <option value="2">2 at a time</option>
+        <option value="3" selected>3 at a time (recommended)</option>
+        <option value="4">4 at a time</option>
+        <option value="5">5 at a time</option>
+        <option value="9">All at once</option>
+      </select>
+      <span>Parallel identities</span>
+    </div>
+
     <div style="display:grid;grid-template-columns:24px 1fr 1fr auto;gap:8px;margin-bottom:6px;">
       <span></span>
       <span style="font-size:11px;color:#555;">Target Rank</span>
@@ -349,7 +371,8 @@
 
   async function startCampaign() {
     if (identityRows.length === 0) return alert('Add at least one identity');
-    const result = await api('/api/start', 'POST', { config: identityRows });
+    const parallelCount = parseInt(document.getElementById('parallel-count').value);
+    const result = await api('/api/start', 'POST', { config: identityRows, parallelCount });
     if (result.error) alert(result.error);
   }
 

@@ -21,7 +21,7 @@ app.get('/api/state', (req, res) => {
 
 // POST start a new campaign
 app.post('/api/start', async (req, res) => {
-  const { config } = req.body;
+  const { config, parallelCount } = req.body;
   if (!config || !Array.isArray(config) || config.length === 0) {
     return res.status(400).json({ error: 'config must be a non-empty array' });
   }
@@ -36,7 +36,7 @@ app.post('/api/start', async (req, res) => {
       return res.status(400).json({ error: 'races must be 1–101' });
     }
   }
-  const result = await startCampaign(config);
+  const result = await startCampaign(config, parallelCount || 1);
   res.json(result);
 });
 

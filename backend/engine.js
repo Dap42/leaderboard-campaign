@@ -191,8 +191,27 @@ async function runIdentity(identityIndex) {
 
   let dynamicAvg = avgScoreNeeded;
   let consecutiveErrors = 0;
+  let lastTargetRefresh = Date.now();
 
   for (let i = 0; i < identity.races; i++) {
+    // Re-fetch leaderboard every 30 minutes to keep target score fresh
+    if (Date.now() - lastTargetRefresh > 20 * 1000) {
+      const freshLb = await getLeaderboard();
+      if (freshLb && freshLb.top && freshLb.top.length > 0) {
+        state.leaderboard = freshLb.top;
+        const sorted = [...freshLb.top].sort((a, b) => a.rank - b.rank);
+        const tp = sorted[identity.targetRank - 1];
+        if (tp) {
+          const newTarget = tp.totalScore + 1;
+          if (newTarget !== targetScore) {
+            log(`${identity.name} target updated: ${targetScore} → ${newTarget} (rank #${identity.targetRank} changed)`, identityIndex);
+            targetScore = newTarget;
+            identity.targetScore = targetScore;
+          }
+        }
+      }
+      lastTargetRefresh = Date.now();
+    }
     // Check for pause or stop
     while (state.paused && state.running) {
       await sleep(2000);
@@ -273,17 +292,15 @@ async function runIdentity(identityIndex) {
   log(`Completed all ${identity.races} races: ${identity.name} — final score ${identity.totalScore}`, identityIndex);
 }
 
-async function startCampaign(config) {
+async function startCampaign(config, parallelCount = 1) {
   if (state.running) return { error: 'Campaign already running' };
 
-  // Reset state
   state.running = true;
   state.paused = false;
   state.logs = [];
   state.startedAt = new Date().toISOString();
   state.completedAt = null;
 
-  // Generate identities
   const usedEmails = new Set();
   state.identities = config.map((cfg, i) => {
     let identity;
@@ -311,15 +328,24 @@ async function startCampaign(config) {
     };
   });
 
-  log(`Campaign started — ${state.identities.length} identities running in parallel`);
+  log(`Campaign started — ${state.identities.length} identities, ${parallelCount} running in parallel`);
 
-  // Run all identities in parallel
+  // Run identities in batches of parallelCount
   (async () => {
-    await Promise.all(state.identities.map((_, i) => runIdentity(i)));
+    const total = state.identities.length;
+    for (let i = 0; i < total; i += parallelCount) {
+      if (!state.running) break;
+      const batch = state.identities.slice(i, i + parallelCount).map(id => id.index);
+      log(`Starting batch: identities ${batch.map(b => b + 1).join(', ')}`);
+      await Promise.all(batch.map(idx => runIdentity(idx)));
+    }
     state.running = false;
     state.completedAt = new Date().toISOString();
     log('Campaign complete');
   })();
+
+  return { ok: true };
+}
 
   return { ok: true };
 }
