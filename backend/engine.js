@@ -311,14 +311,11 @@ async function startCampaign(config) {
     };
   });
 
-  log(`Campaign started — ${state.identities.length} identities`);
+  log(`Campaign started — ${state.identities.length} identities running in parallel`);
 
-  // Run identities sequentially
+  // Run all identities in parallel
   (async () => {
-    for (let i = 0; i < state.identities.length; i++) {
-      if (!state.running) break;
-      await runIdentity(i);
-    }
+    await Promise.all(state.identities.map((_, i) => runIdentity(i)));
     state.running = false;
     state.completedAt = new Date().toISOString();
     log('Campaign complete');

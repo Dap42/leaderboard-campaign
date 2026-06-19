@@ -126,11 +126,13 @@
     .lb-rank.top1 { color: #ffd700; }
     .lb-rank.top2 { color: #c0c0c0; }
     .lb-rank.top3 { color: #cd7f32; }
-    .lb-name { font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .lb-name { font-weight: 500; word-break: break-word; }
     .lb-score { color: #4caf50; font-weight: 600; font-variant-numeric: tabular-nums; }
     .lb-games { color: #555; font-size: 12px; }
-    .lb-refresh { font-size: 12px; color: #555; margin-top: 12px; cursor: pointer; }
+    .lb-refresh { font-size: 12px; color: #555; margin-top: 12px; cursor: pointer; display: flex; align-items: center; gap: 6px; }
     .lb-refresh:hover { color: #4caf50; }
+    .lb-refresh.loading { color: #ffc107; }
+    .lb-refresh.done { color: #4caf50; }
 
     /* IDENTITY STATUS */
     #identity-panel { grid-column: 1 / 3; grid-row: 2; }
@@ -246,7 +248,7 @@
   <div class="card" id="leaderboard-panel">
     <h2>Live Leaderboard</h2>
     <div id="lb-rows"><div class="empty">Not loaded yet</div></div>
-    <div class="lb-refresh" onclick="refreshLeaderboard()">↻ Refresh manually</div>
+    <div class="lb-refresh" id="lb-refresh-btn" onclick="refreshLeaderboard()">↻ Refresh manually</div>
   </div>
 
   <!-- IDENTITIES -->
@@ -346,8 +348,22 @@
   async function stopCampaign()   { await api('/api/stop',   'POST'); }
 
   async function refreshLeaderboard() {
-    const data = await api('/api/leaderboard');
-    renderLeaderboard(data.top || []);
+    const btn = document.getElementById('lb-refresh-btn');
+    btn.className = 'lb-refresh loading';
+    btn.textContent = '↻ Refreshing...';
+    try {
+      const data = await api('/api/leaderboard');
+      renderLeaderboard(data.top || []);
+      btn.className = 'lb-refresh done';
+      btn.textContent = '✓ Updated';
+    } catch(e) {
+      btn.className = 'lb-refresh';
+      btn.textContent = '✕ Failed — check backend';
+    }
+    setTimeout(() => {
+      btn.className = 'lb-refresh';
+      btn.textContent = '↻ Refresh manually';
+    }, 2000);
   }
 
   // ─── Render ───────────────────────────────────────────────────────────────────
