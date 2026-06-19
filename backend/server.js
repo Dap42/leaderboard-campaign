@@ -70,4 +70,18 @@ app.get('/health', (req, res) => {
 });
 
 const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => console.log(`Backend running on port ${PORT}`));
+app.listen(PORT, () => {
+  console.log(`Backend running on port ${PORT}`);
+
+  // Self-ping every 4 minutes to prevent Render free tier cold starts
+  const https = require('https');
+  const selfUrl = process.env.RENDER_EXTERNAL_URL || `http://localhost:${PORT}`;
+  setInterval(() => {
+    const mod = selfUrl.startsWith('https') ? https : require('http');
+    mod.get(`${selfUrl}/health`, res => {
+      console.log(`[keep-alive] ping ${res.statusCode}`);
+    }).on('error', err => {
+      console.warn(`[keep-alive] ping failed: ${err.message}`);
+    });
+  }, 2 * 60 * 1000);
+});
