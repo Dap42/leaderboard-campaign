@@ -655,9 +655,9 @@ async function runBlitzIdentity(s) {
     };
 
     try {
-      const resp = await fetch(`${BLITZ_API}/leaderboard/score`, {
+      const resp = await fetch(`${backendUrl()}/api/blitz/score`, {
         method: 'POST',
-        headers: { 'Content-Type':'application/json', 'Origin':'https://redmiturbo5.com', 'Referer':'https://redmiturbo5.com/' },
+        headers: { 'Content-Type':'application/json' },
         body: JSON.stringify(payload)
       });
 

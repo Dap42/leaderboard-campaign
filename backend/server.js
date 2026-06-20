@@ -58,6 +58,27 @@ app.post('/api/stop', (req, res) => {
   res.json({ ok: true });
 });
 
+// POST blitz score proxy — forwards to game API with correct Origin (avoids browser CORS)
+app.post('/api/blitz/score', async (req, res) => {
+  const fetch = require('node-fetch');
+  const { name, email, score, carUsed, raceTimeSeconds, pickups, requestId } = req.body;
+  try {
+    const upstream = await fetch('https://api-g5leosq2cq-el.a.run.app/leaderboard/score', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Origin': 'https://redmiturbo5.com',
+        'Referer': 'https://redmiturbo5.com/'
+      },
+      body: JSON.stringify({ name, email, score, carUsed, raceTimeSeconds, pickups, requestId })
+    });
+    const data = await upstream.json();
+    res.status(upstream.status).json(data);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // GET live leaderboard
 app.get('/api/leaderboard', async (req, res) => {
   const lb = await getLeaderboard();
