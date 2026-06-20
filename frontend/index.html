@@ -315,11 +315,18 @@
         </select>
       </div>
 
-      <div class="blitz-col-headers">
-        <span></span><span>Name</span><span>Email</span><span>Score</span><span>Races</span><span></span>
+      <div class="field-row">
+        <label>Identities to run</label>
+        <input type="number" id="blitz-count" min="1" max="50" value="9" />
       </div>
-      <div id="blitz-identity-list"></div>
-      <button class="btn-add blitz" onclick="addBlitzRow()">+ Add Identity</button>
+      <div class="field-row">
+        <label>Target score each</label>
+        <input type="number" id="blitz-score" min="1" max="50500" value="50500" />
+      </div>
+      <div class="field-row">
+        <label>Max races each</label>
+        <input type="number" id="blitz-races" min="1" max="101" value="101" />
+      </div>
 
       <div class="actions" style="margin-top:14px;">
         <button class="btn btn-blitz"      id="btn-blitz-start" onclick="startBlitz()">⚡ BLITZ</button>
@@ -396,26 +403,46 @@ function addIdentityRow() { identityRows.push({targetRank:1,desiredScore:0,races
 function removeRow(i) { identityRows.splice(i,1); renderConfigRows(); }
 renderConfigRows();
 
-// ─── Blitz config ─────────────────────────────────────────────────────────────
-let blitzRows = [
-  { name:'', email:'', score:50500, races:101 },
+// ─── Blitz identity auto-generation (mirrors backend engine.js) ───────────────
+const blitzFirstNames = [
+  "Aarav","Vivaan","Aditya","Vihaan","Arjun","Sai","Reyansh","Ayaan","Krishna","Ishaan",
+  "Priya","Ananya","Diya","Kavya","Riya","Neha","Pooja","Anjali","Shreya","Aakanksha",
+  "Rohit","Rahul","Amit","Suresh","Rajesh","Vikas","Deepak","Manish","Sandeep","Nikhil",
+  "Sunita","Meena","Rekha","Geeta","Usha","Lakshmi","Sarita","Kamla","Pushpa","Radha",
+  "Aryan","Dev","Karan","Rohan","Varun","Shivam","Tushar","Gaurav","Himanshu","Akash",
+  "Mohit","Sachin","Ravi","Sanjay","Vinod","Manoj","Prakash","Dinesh","Ramesh","Sunil",
+  "Priyanka","Swati","Divya","Sneha","Preeti","Komal","Nisha","Shweta","Payal","Simran"
 ];
-
-function renderBlitzRows() {
-  document.getElementById('blitz-identity-list').innerHTML = blitzRows.map((row,i) => `
-    <div class="blitz-row">
-      <span class="idx">${i+1}</span>
-      <input type="text" placeholder="Name" value="${row.name}" onchange="updateBlitzRow(${i},'name',this.value)" />
-      <input type="text" placeholder="email@gmail.com" value="${row.email}" onchange="updateBlitzRow(${i},'email',this.value)" />
-      <input type="number" min="1" max="50500" value="${row.score}" onchange="updateBlitzRow(${i},'score',+this.value)" />
-      <input type="number" min="1" max="101" value="${row.races}" onchange="updateBlitzRow(${i},'races',+this.value)" />
-      <button class="btn-remove" onclick="removeBlitzRow(${i})">✕</button>
-    </div>`).join('');
+const blitzLastNames = [
+  "Sharma","Patel","Singh","Gupta","Verma","Joshi","Kumar","Nair","Mehta","Shah",
+  "Yadav","Mishra","Tiwari","Pandey","Dubey","Chauhan","Soni","Rawat","Rana","Bose",
+  "Kapoor","Malhotra","Chopra","Saxena","Aggarwal","Garg","Bansal","Agarwal","Bhatt","Dixit",
+  "Reddy","Rao","Iyer","Pillai","Menon","Naidu","Nambiar","Krishnan","Subramanian","Rajan",
+  "Thakur","Bhatia","Arora","Bajaj","Sethi","Khanna","Anand","Chawla","Ahuja","Sodhi"
+];
+function blitzRandFrom(arr) { return arr[Math.floor(Math.random()*arr.length)]; }
+function generateBlitzIdentity(usedEmails) {
+  let name, email;
+  do {
+    const first = blitzRandFrom(blitzFirstNames);
+    const last  = blitzRandFrom(blitzLastNames);
+    name = `${first} ${last}`;
+    const f = first.toLowerCase(), l = last.toLowerCase();
+    const num = Math.floor(Math.random()*8999)+1000;
+    const yr  = [1995,1996,1997,1998,1999,2000,2001,2002,2003][Math.floor(Math.random()*9)];
+    const sh  = Math.floor(Math.random()*99)+1;
+    const patterns = [
+      `${f}.${l}${num}`,`${f}${l}${num}`,`${f}_${l}_${sh}`,
+      `${f}${yr}`,`${l}.${f}${sh}`,`${f}${l}${yr}`,
+      `${f}.${sh}.${l}`,`${l}${num}${f.charAt(0)}`,
+    ];
+    const base  = blitzRandFrom(patterns);
+    const noise = Math.random()>0.5 ? Math.floor(Math.random()*999) : '';
+    email = `${base}${noise}@gmail.com`;
+  } while (usedEmails.has(email));
+  usedEmails.add(email);
+  return { name, email };
 }
-function updateBlitzRow(i,k,v) { blitzRows[i][k]=v; }
-function addBlitzRow() { blitzRows.push({name:'',email:'',score:50500,races:101}); renderBlitzRows(); }
-function removeBlitzRow(i) { blitzRows.splice(i,1); renderBlitzRows(); }
-renderBlitzRows();
 
 // ─── API ──────────────────────────────────────────────────────────────────────
 function backendUrl() { return document.getElementById('backend-url').value.replace(/\/$/,''); }
@@ -703,31 +730,32 @@ async function runBlitzIdentity(s) {
 }
 
 async function startBlitz() {
-  const rows = blitzRows.filter(r => r.email.trim());
-  if (!rows.length) return alert('Add at least one identity with an email');
+  const count  = parseInt(document.getElementById('blitz-count').value) || 1;
+  const score  = parseInt(document.getElementById('blitz-score').value) || 50500;
+  const races  = parseInt(document.getElementById('blitz-races').value) || 101;
 
-  // Validate
-  for (const r of rows) {
-    if (!r.name.trim()) return alert(`Enter a name for ${r.email}`);
-    if (!r.email.includes('@')) return alert(`Invalid email: ${r.email}`);
-    if (r.score > 50500) return alert(`Max score is 50500 (${r.email})`);
-  }
+  if (score > 50500) return alert('Max score is 50500');
+  if (races > 101)   return alert('Max races is 101');
 
   blitzRunning = true;
   blitzAbort   = false;
   document.getElementById('btn-blitz-start').disabled = true;
   document.getElementById('btn-blitz-stop').disabled  = false;
 
-  blitzState = rows.map(r => ({
-    name: r.name.trim(),
-    email: r.email.trim(),
-    targetScore: r.score,
-    races: r.races,
-    racesPlayed: 0,
-    totalScore: 0,
-    status: 'pending',
-    startedAt: null,
-  }));
+  const usedEmails = new Set();
+  blitzState = Array.from({length: count}, () => {
+    const id = generateBlitzIdentity(usedEmails);
+    return {
+      name: id.name,
+      email: id.email,
+      targetScore: score,
+      races,
+      racesPlayed: 0,
+      totalScore: 0,
+      status: 'pending',
+      startedAt: null,
+    };
+  });
 
   renderBlitzCards();
   document.getElementById('blitz-log-box').innerHTML = '';
