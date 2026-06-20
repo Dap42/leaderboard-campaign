@@ -60,7 +60,9 @@ function generateHumanPickups() {
 
 function generatePacedScore(avgTarget) {
   const MIN = 380;
-  const MAX = 500; // 500 * 101 = 50500, needed for high score targets
+  const MAX = 500;
+  // If we need 500 every race to hit target, don't apply variance — return 500 exactly
+  if (avgTarget >= 500) return 500;
   const clampedAvg = Math.max(MIN, Math.min(MAX, avgTarget));
   const variance = (Math.random() - 0.5) * 60;
   const raw = Math.round(clampedAvg + variance);
