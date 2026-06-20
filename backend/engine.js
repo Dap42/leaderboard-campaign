@@ -284,7 +284,7 @@ async function runIdentity(identityIndex) {
     // Recalculate dynamicAvg from live targetScore (updated by poller)
     const racesLeft = identity.races - i;
     const scoreLeft = Math.max(0, identity.targetScore - identity.totalScore);
-    const dynamicAvg = Math.min(499, Math.max(380, Math.ceil(scoreLeft / racesLeft)));
+    const dynamicAvg = Math.min(500, Math.max(380, Math.ceil(scoreLeft / racesLeft)));
     identity.avgNeeded = dynamicAvg;
 
     // Submit race
