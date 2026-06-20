@@ -9,71 +9,60 @@
     body { font-family: 'Segoe UI', sans-serif; background: #0f0f0f; color: #e0e0e0; min-height: 100vh; }
 
     header {
-      background: #1a1a1a;
-      border-bottom: 1px solid #2a2a2a;
-      padding: 14px 20px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
+      background: #1a1a1a; border-bottom: 1px solid #2a2a2a;
+      padding: 14px 20px; display: flex; align-items: center; justify-content: space-between;
     }
     header h1 { font-size: 16px; font-weight: 600; color: #fff; }
-    .status-pill {
-      padding: 4px 12px; border-radius: 20px; font-size: 11px;
-      font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;
-    }
-    .status-idle     { background: #2a2a2a; color: #888; }
-    .status-running  { background: #1a3a1a; color: #4caf50; }
-    .status-paused   { background: #3a2a00; color: #ffc107; }
+    .status-pill { padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+    .status-idle    { background: #2a2a2a; color: #888; }
+    .status-running { background: #1a3a1a; color: #4caf50; }
+    .status-paused  { background: #3a2a00; color: #ffc107; }
+    .status-blitz   { background: #3a0a0a; color: #ff5252; }
 
-    .connection-bar {
-      padding: 5px 20px; font-size: 12px; font-weight: 600;
-      display: flex; align-items: center; gap: 8px;
-    }
+    .connection-bar { padding: 5px 20px; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
     .connection-bar.ok      { background: #0a1f0a; color: #4caf50; }
     .connection-bar.error   { background: #1f0a0a; color: #e53935; }
     .connection-bar.checking{ background: #1a1a1a; color: #888; }
     .dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
-    .dot-ok    { background: #4caf50; }
-    .dot-error { background: #e53935; }
-    .dot-check { background: #888; }
+    .dot-ok { background: #4caf50; } .dot-error { background: #e53935; } .dot-check { background: #888; }
+
+    /* TABS */
+    .tabs { display: flex; gap: 0; border-bottom: 1px solid #2a2a2a; background: #141414; }
+    .tab-btn {
+      padding: 10px 22px; font-size: 12px; font-weight: 600; cursor: pointer;
+      border: none; background: none; color: #555; border-bottom: 2px solid transparent;
+      transition: all 0.15s; text-transform: uppercase; letter-spacing: 0.5px;
+    }
+    .tab-btn:hover { color: #aaa; }
+    .tab-btn.active { color: #4caf50; border-bottom-color: #4caf50; }
+    .tab-btn.blitz-tab.active { color: #ff5252; border-bottom-color: #ff5252; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
 
     /* LAYOUT */
-    .container {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 14px;
-      padding: 14px;
-    }
+    .container { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; padding: 14px; }
     #identity-panel { grid-column: 1 / 3; }
     #log-panel      { grid-column: 1 / 3; }
+    #blitz-log-panel { grid-column: 1 / 3; }
 
-    .card {
-      background: #1a1a1a; border: 1px solid #2a2a2a;
-      border-radius: 10px; padding: 18px;
-    }
-    .card h2 {
-      font-size: 11px; font-weight: 700; color: #666;
-      text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 14px;
-    }
+    .card { background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 10px; padding: 18px; }
+    .card h2 { font-size: 11px; font-weight: 700; color: #666; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 14px; }
+    .card.blitz-card { border-color: #3a1a1a; }
+    .card.blitz-card h2 { color: #ff5252; }
 
-    /* CONFIG */
-    .field-row {
-      display: flex; gap: 8px; align-items: center; margin-bottom: 10px;
-    }
-    .field-row label { font-size: 11px; color: #555; white-space: nowrap; min-width: 110px; }
+    .field-row { display: flex; gap: 8px; align-items: center; margin-bottom: 10px; }
+    .field-row label { font-size: 11px; color: #555; white-space: nowrap; min-width: 120px; }
     .field-row input, .field-row select { flex: 1; }
 
-    .col-headers {
-      display: grid; grid-template-columns: 22px 1fr 1fr 1fr 28px;
-      gap: 6px; margin-bottom: 4px; padding: 0 2px;
-    }
+    .col-headers { display: grid; grid-template-columns: 22px 1fr 1fr 1fr 28px; gap: 6px; margin-bottom: 4px; padding: 0 2px; }
     .col-headers span { font-size: 10px; color: #444; text-transform: uppercase; }
-
-    .identity-row {
-      display: grid; grid-template-columns: 22px 1fr 1fr 1fr 28px;
-      gap: 6px; align-items: center; margin-bottom: 6px;
-    }
+    .identity-row { display: grid; grid-template-columns: 22px 1fr 1fr 1fr 28px; gap: 6px; align-items: center; margin-bottom: 6px; }
     .identity-row .idx { color: #444; font-size: 11px; text-align: right; }
+
+    /* BLITZ rows: #, Name, Email, Score, Races, remove */
+    .blitz-col-headers { display: grid; grid-template-columns: 22px 1fr 1fr 90px 70px 28px; gap: 6px; margin-bottom: 4px; padding: 0 2px; }
+    .blitz-row         { display: grid; grid-template-columns: 22px 1fr 1fr 90px 70px 28px; gap: 6px; align-items: center; margin-bottom: 6px; }
+    .blitz-col-headers span { font-size: 10px; color: #555; text-transform: uppercase; }
 
     select, input[type=number], input[type=text] {
       background: #111; border: 1px solid #2a2a2a; color: #e0e0e0;
@@ -81,136 +70,104 @@
     }
     select:focus, input:focus { outline: none; border-color: #4caf50; }
 
-    .btn-remove {
-      background: none; border: none; color: #333; cursor: pointer;
-      font-size: 15px; padding: 0; transition: color 0.2s; line-height: 1;
-    }
+    .btn-remove { background: none; border: none; color: #333; cursor: pointer; font-size: 15px; padding: 0; transition: color 0.2s; }
     .btn-remove:hover { color: #e53935; }
-    .btn-add {
-      background: #111; border: 1px dashed #333; color: #555;
-      border-radius: 6px; padding: 7px; width: 100%; cursor: pointer;
-      font-size: 12px; margin-top: 6px; transition: all 0.2s;
-    }
+    .btn-add { background: #111; border: 1px dashed #333; color: #555; border-radius: 6px; padding: 7px; width: 100%; cursor: pointer; font-size: 12px; margin-top: 6px; transition: all 0.2s; }
     .btn-add:hover { border-color: #4caf50; color: #4caf50; }
+    .btn-add.blitz { border-color: #3a1a1a; color: #663333; }
+    .btn-add.blitz:hover { border-color: #ff5252; color: #ff5252; }
 
     .actions { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
-    .btn {
-      flex: 1; min-width: 70px; padding: 10px 6px; border-radius: 8px;
-      border: none; font-size: 12px; font-weight: 700; cursor: pointer;
-      transition: opacity 0.2s;
-    }
+    .btn { flex: 1; min-width: 70px; padding: 10px 6px; border-radius: 8px; border: none; font-size: 12px; font-weight: 700; cursor: pointer; transition: opacity 0.2s; }
     .btn:disabled { opacity: 0.25; cursor: not-allowed; }
     .btn-start  { background: #4caf50; color: #000; }
     .btn-pause  { background: #ffc107; color: #000; }
     .btn-resume { background: #2196f3; color: #fff; }
     .btn-stop   { background: #e53935; color: #fff; }
+    .btn-blitz  { background: #ff5252; color: #000; font-weight: 900; letter-spacing: 0.5px; }
+    .btn-blitz-stop { background: #7f0000; color: #fff; }
 
     /* LEADERBOARD */
-    .lb-row {
-      display: flex; align-items: center; gap: 10px;
-      padding: 7px 0; border-bottom: 1px solid #1f1f1f; font-size: 13px;
-    }
+    .lb-row { display: flex; align-items: center; gap: 10px; padding: 7px 0; border-bottom: 1px solid #1f1f1f; }
     .lb-row:last-child { border-bottom: none; }
     .lb-rank { font-size: 12px; font-weight: 700; min-width: 26px; flex-shrink: 0; }
-    .lb-rank.top1 { color: #ffd700; }
-    .lb-rank.top2 { color: #c0c0c0; }
-    .lb-rank.top3 { color: #cd7f32; }
-    .lb-rank.other { color: #555; }
-    .lb-name { font-weight: 500; flex: 1; font-size: 13px; line-height: 1.3; }
+    .lb-rank.top1 { color: #ffd700; } .lb-rank.top2 { color: #c0c0c0; } .lb-rank.top3 { color: #cd7f32; } .lb-rank.other { color: #555; }
+    .lb-name { font-weight: 500; flex: 1; font-size: 13px; }
     .lb-right { display: flex; flex-direction: column; align-items: flex-end; flex-shrink: 0; }
     .lb-score { color: #4caf50; font-weight: 700; font-size: 13px; }
     .lb-games { color: #444; font-size: 10px; margin-top: 1px; }
-    .lb-refresh {
-      font-size: 11px; color: #444; margin-top: 12px;
-      cursor: pointer; display: inline-flex; align-items: center; gap: 5px;
-      transition: color 0.2s;
-    }
-    .lb-refresh:hover  { color: #4caf50; }
-    .lb-refresh.loading{ color: #ffc107; }
-    .lb-refresh.done   { color: #4caf50; }
-    .lb-refresh.fail   { color: #e53935; }
+    .lb-refresh { font-size: 11px; color: #444; margin-top: 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; transition: color 0.2s; }
+    .lb-refresh:hover { color: #4caf50; } .lb-refresh.loading { color: #ffc107; } .lb-refresh.done { color: #4caf50; } .lb-refresh.fail { color: #e53935; }
 
     /* IDENTITY CARDS */
     .identity-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; }
-    .id-card {
-      background: #111; border: 1px solid #222;
-      border-radius: 8px; padding: 12px;
-    }
-    .id-card.running     { border-color: #2e5c2e; }
-    .id-card.reached     { border-color: #4caf50; }
-    .id-card.completed   { border-color: #7986cb; }
-    .id-card.stopped     { border-color: #444; }
+    .id-card { background: #111; border: 1px solid #222; border-radius: 8px; padding: 12px; }
+    .id-card.running     { border-color: #2e5c2e; } .id-card.reached { border-color: #4caf50; }
+    .id-card.completed   { border-color: #7986cb; } .id-card.stopped { border-color: #444; }
     .id-card.unreachable { border-color: #e53935; }
-
     .id-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; gap: 6px; }
     .id-name { font-weight: 600; font-size: 13px; flex: 1; }
-    .id-badge {
-      font-size: 9px; font-weight: 700; text-transform: uppercase;
-      padding: 2px 7px; border-radius: 10px; letter-spacing: 0.5px; flex-shrink: 0;
-    }
-    .badge-pending     { background: #2a2a2a; color: #666; }
-    .badge-running     { background: #1a3a1a; color: #4caf50; }
-    .badge-reached     { background: #1a3a1a; color: #4caf50; }
-    .badge-completed   { background: #1a1a3a; color: #7986cb; }
-    .badge-stopped     { background: #2a2a2a; color: #666; }
-    .badge-unreachable { background: #3a1a1a; color: #e53935; }
-
+    .id-badge { font-size: 9px; font-weight: 700; text-transform: uppercase; padding: 2px 7px; border-radius: 10px; letter-spacing: 0.5px; flex-shrink: 0; }
+    .badge-pending     { background: #2a2a2a; color: #666; } .badge-running  { background: #1a3a1a; color: #4caf50; }
+    .badge-reached     { background: #1a3a1a; color: #4caf50; } .badge-completed { background: #1a1a3a; color: #7986cb; }
+    .badge-stopped     { background: #2a2a2a; color: #666; } .badge-unreachable { background: #3a1a1a; color: #e53935; }
     .id-email { font-size: 10px; color: #444; margin-bottom: 8px; word-break: break-all; }
     .id-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
-    .id-stat  { background: #1a1a1a; border-radius: 6px; padding: 7px 9px; }
+    .id-stat { background: #1a1a1a; border-radius: 6px; padding: 7px 9px; }
     .id-stat-label { font-size: 9px; color: #444; text-transform: uppercase; letter-spacing: 0.3px; }
     .id-stat-value { font-size: 14px; font-weight: 700; color: #e0e0e0; margin-top: 1px; }
     .id-progress { margin-top: 8px; }
     .progress-bar  { height: 3px; background: #222; border-radius: 2px; overflow: hidden; }
     .progress-fill { height: 100%; background: #4caf50; border-radius: 2px; transition: width 0.5s; }
+    .progress-fill.blitz-fill { background: #ff5252; }
     .progress-label { font-size: 10px; color: #444; margin-top: 3px; }
+
+    /* BLITZ IDENTITY CARDS */
+    .blitz-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
+    .blitz-id-card { background: #110a0a; border: 1px solid #3a1a1a; border-radius: 8px; padding: 12px; }
+    .blitz-id-card.running  { border-color: #ff5252; box-shadow: 0 0 8px #ff525222; }
+    .blitz-id-card.done     { border-color: #4caf50; }
+    .blitz-id-card.limited  { border-color: #ffc107; }
+    .blitz-id-card.stopped  { border-color: #444; }
+    .blitz-id-name  { font-weight: 700; font-size: 12px; margin-bottom: 3px; }
+    .blitz-id-email { font-size: 9px; color: #443333; margin-bottom: 8px; word-break: break-all; }
+    .blitz-id-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+    .blitz-stat { background: #1a1010; border-radius: 5px; padding: 5px 7px; }
+    .blitz-stat-label { font-size: 9px; color: #553333; text-transform: uppercase; }
+    .blitz-stat-value { font-size: 13px; font-weight: 700; color: #e0e0e0; }
+    .blitz-progress { margin-top: 7px; }
+    .blitz-speed { font-size: 10px; color: #ff5252; margin-top: 3px; }
+
+    /* BLITZ WARNING BANNER */
+    .blitz-warning {
+      background: #1a0a0a; border: 1px solid #ff525244; border-radius: 8px;
+      padding: 10px 14px; margin-bottom: 14px; font-size: 11px; color: #ff8a80;
+      display: flex; align-items: center; gap: 8px;
+    }
 
     /* LOGS */
     .log-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
     .log-header h2 { margin-bottom: 0; }
-    .log-expand-btn {
-      font-size: 11px; color: #555; cursor: pointer; background: #111;
-      border: 1px solid #2a2a2a; border-radius: 5px; padding: 3px 10px;
-      transition: all 0.2s;
-    }
+    .log-expand-btn { font-size: 11px; color: #555; cursor: pointer; background: #111; border: 1px solid #2a2a2a; border-radius: 5px; padding: 3px 10px; transition: all 0.2s; }
     .log-expand-btn:hover { color: #4caf50; border-color: #4caf50; }
-
     .log-filters { display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; }
-    .log-filter-btn {
-      font-size: 10px; padding: 2px 8px; border-radius: 10px; border: 1px solid #2a2a2a;
-      background: #111; color: #555; cursor: pointer; transition: all 0.2s;
-    }
+    .log-filter-btn { font-size: 10px; padding: 2px 8px; border-radius: 10px; border: 1px solid #2a2a2a; background: #111; color: #555; cursor: pointer; transition: all 0.2s; }
     .log-filter-btn.active { background: #1a3a1a; border-color: #4caf50; color: #4caf50; }
-
-    .log-box {
-      overflow-y: auto; max-height: 220px;
-      font-size: 11px; font-family: 'Courier New', monospace;
-    }
-    .log-entry {
-      padding: 3px 0; border-bottom: 1px solid #161616;
-      display: flex; gap: 8px; align-items: baseline;
-    }
-    .log-time  { color: #333; white-space: nowrap; flex-shrink: 0; font-size: 10px; }
-    .log-msg   { color: #aaa; line-height: 1.4; }
+    .log-box { overflow-y: auto; max-height: 220px; font-size: 11px; font-family: 'Courier New', monospace; }
+    .log-entry { padding: 3px 0; border-bottom: 1px solid #161616; display: flex; gap: 8px; align-items: baseline; }
+    .log-time { color: #333; white-space: nowrap; flex-shrink: 0; font-size: 10px; }
+    .log-msg { color: #aaa; line-height: 1.4; }
     .log-msg.highlight { color: #4caf50; font-weight: 700; }
     .log-msg.warn      { color: #ffc107; }
     .log-msg.error     { color: #e53935; }
+    .log-msg.blitz-msg { color: #ff8a80; }
 
-    /* FULLSCREEN LOGS OVERLAY */
-    .log-overlay {
-      display: none; position: fixed; inset: 0; background: #0a0a0a;
-      z-index: 1000; flex-direction: column; padding: 16px;
-    }
+    /* FULLSCREEN OVERLAY */
+    .log-overlay { display: none; position: fixed; inset: 0; background: #0a0a0a; z-index: 1000; flex-direction: column; padding: 16px; }
     .log-overlay.open { display: flex; }
-    .log-overlay-header {
-      display: flex; justify-content: space-between; align-items: center;
-      margin-bottom: 12px; flex-shrink: 0;
-    }
+    .log-overlay-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-shrink: 0; }
     .log-overlay-header h2 { font-size: 14px; color: #fff; }
-    .log-close-btn {
-      background: #1a1a1a; border: 1px solid #333; color: #aaa;
-      border-radius: 6px; padding: 6px 14px; cursor: pointer; font-size: 12px;
-    }
+    .log-close-btn { background: #1a1a1a; border: 1px solid #333; color: #aaa; border-radius: 6px; padding: 6px 14px; cursor: pointer; font-size: 12px; }
     .log-close-btn:hover { color: #fff; border-color: #555; }
     .log-overlay .log-box { max-height: none; flex: 1; }
     .log-overlay-filters { display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap; flex-shrink: 0; }
@@ -220,20 +177,15 @@
     /* MOBILE */
     @media (max-width: 700px) {
       .container { grid-template-columns: 1fr; padding: 10px; gap: 10px; }
-      #config-panel    { grid-column: 1; }
-      #leaderboard-panel { grid-column: 1; }
-      #identity-panel  { grid-column: 1; }
-      #log-panel       { grid-column: 1; }
+      #config-panel, #leaderboard-panel, #identity-panel, #log-panel, #blitz-log-panel { grid-column: 1; }
       header h1 { font-size: 14px; }
-      .status-pill { font-size: 10px; padding: 3px 9px; }
-      .col-headers, .identity-row { grid-template-columns: 18px 1fr 1fr 1fr 24px; gap: 5px; }
+      .col-headers, .identity-row { grid-template-columns: 18px 1fr 1fr 1fr 24px; gap: 4px; }
+      .blitz-col-headers, .blitz-row { grid-template-columns: 18px 1fr 1fr 70px 55px 24px; gap: 4px; }
       .btn { font-size: 11px; padding: 9px 4px; }
-      .identity-cards { grid-template-columns: 1fr; }
+      .identity-cards, .blitz-cards { grid-template-columns: 1fr; }
       .field-row { flex-direction: column; align-items: flex-start; gap: 4px; }
       .field-row label { min-width: unset; }
       .field-row input, .field-row select { width: 100%; }
-      .lb-name { font-size: 12px; }
-      .lb-score { font-size: 12px; }
     }
   </style>
 </head>
@@ -256,334 +208,536 @@
   </div>
   <div class="log-overlay-filters">
     <span style="font-size:11px;color:#555;align-self:center;">Filter:</span>
-    <button class="log-filter-btn active" onclick="setFilter('all', this)">All</button>
-    <button class="log-filter-btn" onclick="setFilter('highlight', this)">★ Milestones</button>
-    <button class="log-filter-btn" onclick="setFilter('warn', this)">⚠ Warnings</button>
-    <button class="log-filter-btn" onclick="setFilter('error', this)">✕ Errors</button>
+    <button class="log-filter-btn active" onclick="setFilter('all',this)">All</button>
+    <button class="log-filter-btn" onclick="setFilter('highlight',this)">★ Milestones</button>
+    <button class="log-filter-btn" onclick="setFilter('warn',this)">⚠ Warnings</button>
+    <button class="log-filter-btn" onclick="setFilter('error',this)">✕ Errors</button>
   </div>
   <div class="log-box" id="log-box-full"></div>
 </div>
 
-<div class="container">
+<!-- TABS -->
+<div class="tabs">
+  <button class="tab-btn active" onclick="switchTab('normal')">Normal Campaign</button>
+  <button class="tab-btn blitz-tab" onclick="switchTab('blitz')">⚡ Blitz Mode</button>
+</div>
 
-  <!-- CONFIG -->
-  <div class="card" id="config-panel">
-    <h2>Campaign Config</h2>
+<!-- ═══════════════ NORMAL TAB ═══════════════ -->
+<div id="tab-normal" class="tab-content active">
+  <div class="container">
 
-    <div class="field-row">
-      <label>Backend URL</label>
-      <input type="text" id="backend-url" value="https://leaderboard-campaign.onrender.com" />
-    </div>
-    <div class="field-row">
-      <label>Parallel identities</label>
-      <select id="parallel-count">
-        <option value="1">1 at a time (safest)</option>
-        <option value="2">2 at a time</option>
-        <option value="3" selected>3 at a time (recommended)</option>
-        <option value="4">4 at a time</option>
-        <option value="5">5 at a time</option>
-        <option value="99">All at once</option>
-      </select>
-    </div>
-
-    <div class="col-headers">
-      <span></span>
-      <span>Target Rank</span>
-      <span>Score (optional)</span>
-      <span>Max Races</span>
-      <span></span>
-    </div>
-    <div id="identity-list"></div>
-    <button class="btn-add" onclick="addIdentityRow()">+ Add Identity</button>
-
-    <div class="actions">
-      <button class="btn btn-start"  id="btn-start"  onclick="startCampaign()">Start</button>
-      <button class="btn btn-pause"  id="btn-pause"  onclick="pauseCampaign()"  disabled>Pause</button>
-      <button class="btn btn-resume" id="btn-resume" onclick="resumeCampaign()" disabled>Resume</button>
-      <button class="btn btn-stop"   id="btn-stop"   onclick="stopCampaign()"   disabled>Stop</button>
-    </div>
-  </div>
-
-  <!-- LEADERBOARD -->
-  <div class="card" id="leaderboard-panel">
-    <h2>Live Leaderboard</h2>
-    <div id="lb-rows"><div class="empty">Not loaded yet</div></div>
-    <div class="lb-refresh" id="lb-refresh-btn" onclick="refreshLeaderboard()">↻ Refresh manually</div>
-  </div>
-
-  <!-- IDENTITIES -->
-  <div id="identity-panel">
-    <div class="card">
-      <h2>Identity Progress</h2>
-      <div id="identity-cards" class="identity-cards">
-        <div class="empty">Start a campaign to see progress</div>
+    <div class="card" id="config-panel">
+      <h2>Campaign Config</h2>
+      <div class="field-row">
+        <label>Backend URL</label>
+        <input type="text" id="backend-url" value="https://leaderboard-campaign.onrender.com" />
+      </div>
+      <div class="field-row">
+        <label>Parallel identities</label>
+        <select id="parallel-count">
+          <option value="1">1 at a time (safest)</option>
+          <option value="2">2 at a time</option>
+          <option value="3" selected>3 at a time (recommended)</option>
+          <option value="4">4 at a time</option>
+          <option value="5">5 at a time</option>
+          <option value="99">All at once</option>
+        </select>
+      </div>
+      <div class="col-headers">
+        <span></span><span>Target Rank</span><span>Score (optional)</span><span>Max Races</span><span></span>
+      </div>
+      <div id="identity-list"></div>
+      <button class="btn-add" onclick="addIdentityRow()">+ Add Identity</button>
+      <div class="actions">
+        <button class="btn btn-start"  id="btn-start"  onclick="startCampaign()">Start</button>
+        <button class="btn btn-pause"  id="btn-pause"  onclick="pauseCampaign()"  disabled>Pause</button>
+        <button class="btn btn-resume" id="btn-resume" onclick="resumeCampaign()" disabled>Resume</button>
+        <button class="btn btn-stop"   id="btn-stop"   onclick="stopCampaign()"   disabled>Stop</button>
       </div>
     </div>
-  </div>
 
-  <!-- LOGS -->
-  <div id="log-panel">
-    <div class="card">
-      <div class="log-header">
-        <h2>Live Logs</h2>
-        <button class="log-expand-btn" onclick="openFullscreen()">⛶ Full Screen</button>
-      </div>
-      <div class="log-filters">
-        <span style="font-size:10px;color:#444;align-self:center;">Filter:</span>
-        <button class="log-filter-btn active" onclick="setFilter('all', this)">All</button>
-        <button class="log-filter-btn" onclick="setFilter('highlight', this)">★ Milestones</button>
-        <button class="log-filter-btn" onclick="setFilter('warn', this)">⚠ Warnings</button>
-        <button class="log-filter-btn" onclick="setFilter('error', this)">✕ Errors</button>
-      </div>
-      <div class="log-box" id="log-box"></div>
+    <div class="card" id="leaderboard-panel">
+      <h2>Live Leaderboard</h2>
+      <div id="lb-rows"><div class="empty">Not loaded yet</div></div>
+      <div class="lb-refresh" id="lb-refresh-btn" onclick="refreshLeaderboard()">↻ Refresh manually</div>
     </div>
-  </div>
 
+    <div id="identity-panel">
+      <div class="card">
+        <h2>Identity Progress</h2>
+        <div id="identity-cards" class="identity-cards">
+          <div class="empty">Start a campaign to see progress</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="log-panel">
+      <div class="card">
+        <div class="log-header">
+          <h2>Live Logs</h2>
+          <button class="log-expand-btn" onclick="openFullscreen()">⛶ Full Screen</button>
+        </div>
+        <div class="log-filters">
+          <span style="font-size:10px;color:#444;align-self:center;">Filter:</span>
+          <button class="log-filter-btn active" onclick="setFilter('all',this)">All</button>
+          <button class="log-filter-btn" onclick="setFilter('highlight',this)">★ Milestones</button>
+          <button class="log-filter-btn" onclick="setFilter('warn',this)">⚠ Warnings</button>
+          <button class="log-filter-btn" onclick="setFilter('error',this)">✕ Errors</button>
+        </div>
+        <div class="log-box" id="log-box"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════ BLITZ TAB ═══════════════ -->
+<div id="tab-blitz" class="tab-content">
+  <div class="container">
+
+    <div class="card blitz-card" id="blitz-config-panel">
+      <h2>⚡ Blitz Config</h2>
+
+      <div class="blitz-warning">
+        ⚠ Blitz mode fires requests as fast as possible with no human delays. Each identity respects the API 3s cooldown only. Use for speed — not stealth.
+      </div>
+
+      <div class="blitz-col-headers">
+        <span></span><span>Name</span><span>Email</span><span>Score</span><span>Races</span><span></span>
+      </div>
+      <div id="blitz-identity-list"></div>
+      <button class="btn-add blitz" onclick="addBlitzRow()">+ Add Identity</button>
+
+      <div class="actions" style="margin-top:14px;">
+        <button class="btn btn-blitz"      id="btn-blitz-start" onclick="startBlitz()">⚡ BLITZ</button>
+        <button class="btn btn-blitz-stop" id="btn-blitz-stop"  onclick="stopBlitz()" disabled>■ Stop</button>
+      </div>
+    </div>
+
+    <div class="card" id="blitz-leaderboard-panel">
+      <h2>Live Leaderboard</h2>
+      <div id="blitz-lb-rows"><div class="empty">Not loaded yet</div></div>
+      <div class="lb-refresh" id="blitz-lb-refresh-btn" onclick="refreshLeaderboard()">↻ Refresh</div>
+    </div>
+
+    <div id="blitz-cards-panel" style="grid-column:1/3;">
+      <div class="card blitz-card">
+        <h2>⚡ Blitz Progress</h2>
+        <div id="blitz-cards" class="blitz-cards">
+          <div class="empty">Start blitz to see progress</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="blitz-log-panel" style="grid-column:1/3;">
+      <div class="card blitz-card">
+        <div class="log-header">
+          <h2>⚡ Blitz Logs</h2>
+          <button class="log-expand-btn" onclick="openFullscreen()">⛶ Full Screen</button>
+        </div>
+        <div class="log-box" id="blitz-log-box" style="max-height:300px;"></div>
+      </div>
+    </div>
+
+  </div>
 </div>
 
 <script>
-  // ─── Config ──────────────────────────────────────────────────────────────────
-  let identityRows = [
-    { targetRank: 2,  desiredScore: 0, races: 101 },
-    { targetRank: 3,  desiredScore: 0, races: 101 },
-    { targetRank: 4,  desiredScore: 0, races: 101 },
-    { targetRank: 5,  desiredScore: 0, races: 101 },
-    { targetRank: 6,  desiredScore: 0, races: 101 },
-    { targetRank: 7,  desiredScore: 0, races: 101 },
-    { targetRank: 8,  desiredScore: 0, races: 101 },
-    { targetRank: 9,  desiredScore: 0, races: 101 },
-    { targetRank: 10, desiredScore: 0, races: 101 },
-  ];
+// ─── Tab switching ────────────────────────────────────────────────────────────
+function switchTab(name) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  event.target.classList.add('active');
+}
 
-  function renderConfigRows() {
-    document.getElementById('identity-list').innerHTML = identityRows.map((row, i) => `
-      <div class="identity-row">
-        <span class="idx">${i+1}</span>
-        <select onchange="updateRow(${i},'targetRank',+this.value)">
-          ${[1,2,3,4,5,6,7,8,9,10].map(r =>
-            `<option value="${r}"${row.targetRank===r?' selected':''}>#${r}</option>`
-          ).join('')}
-        </select>
-        <input type="number" min="0" placeholder="auto" value="${row.desiredScore || ''}"
-          onchange="updateRow(${i},'desiredScore',+this.value||0)"
-          title="Leave 0/blank to auto-target rank. Enter a score to override." />
-        <input type="number" min="1" max="101" value="${row.races}"
-          onchange="updateRow(${i},'races',+this.value)" />
-        <button class="btn-remove" onclick="removeRow(${i})">✕</button>
-      </div>
-    `).join('');
-  }
-  function updateRow(i, k, v) { identityRows[i][k] = v; }
-  function addIdentityRow()   { identityRows.push({ targetRank: 1, desiredScore: 0, races: 101 }); renderConfigRows(); }
-  function removeRow(i)       { identityRows.splice(i, 1); renderConfigRows(); }
-  renderConfigRows();
+// ─── Normal campaign config ───────────────────────────────────────────────────
+let identityRows = [
+  { targetRank: 2,  desiredScore: 0, races: 101 },
+  { targetRank: 3,  desiredScore: 0, races: 101 },
+  { targetRank: 4,  desiredScore: 0, races: 101 },
+  { targetRank: 5,  desiredScore: 0, races: 101 },
+  { targetRank: 6,  desiredScore: 0, races: 101 },
+  { targetRank: 7,  desiredScore: 0, races: 101 },
+  { targetRank: 8,  desiredScore: 0, races: 101 },
+  { targetRank: 9,  desiredScore: 0, races: 101 },
+  { targetRank: 10, desiredScore: 0, races: 101 },
+];
 
-  // ─── API ─────────────────────────────────────────────────────────────────────
-  function backendUrl() {
-    return document.getElementById('backend-url').value.replace(/\/$/, '');
-  }
-  async function api(path, method='GET', body=null) {
-    const opts = { method, headers: { 'Content-Type': 'application/json' } };
-    if (body) opts.body = JSON.stringify(body);
-    const resp = await fetch(backendUrl() + path, opts);
-    return resp.json();
-  }
+function renderConfigRows() {
+  document.getElementById('identity-list').innerHTML = identityRows.map((row, i) => `
+    <div class="identity-row">
+      <span class="idx">${i+1}</span>
+      <select onchange="updateRow(${i},'targetRank',+this.value)">
+        ${[1,2,3,4,5,6,7,8,9,10].map(r => `<option value="${r}"${row.targetRank===r?' selected':''}>#${r}</option>`).join('')}
+      </select>
+      <input type="number" min="0" placeholder="auto" value="${row.desiredScore||''}"
+        onchange="updateRow(${i},'desiredScore',+this.value||0)"
+        title="Leave blank = auto from rank. Enter score to override." />
+      <input type="number" min="1" max="101" value="${row.races}" onchange="updateRow(${i},'races',+this.value)" />
+      <button class="btn-remove" onclick="removeRow(${i})">✕</button>
+    </div>`).join('');
+}
+function updateRow(i,k,v) { identityRows[i][k]=v; }
+function addIdentityRow() { identityRows.push({targetRank:1,desiredScore:0,races:101}); renderConfigRows(); }
+function removeRow(i) { identityRows.splice(i,1); renderConfigRows(); }
+renderConfigRows();
 
-  async function startCampaign() {
-    if (!identityRows.length) return alert('Add at least one identity');
-    const parallelCount = parseInt(document.getElementById('parallel-count').value);
-    const result = await api('/api/start', 'POST', { config: identityRows, parallelCount });
-    if (result.error) alert(result.error);
-  }
-  async function pauseCampaign()  { await api('/api/pause',  'POST'); }
-  async function resumeCampaign() { await api('/api/resume', 'POST'); }
-  async function stopCampaign()   { await api('/api/stop',   'POST'); }
+// ─── Blitz config ─────────────────────────────────────────────────────────────
+let blitzRows = [
+  { name:'', email:'', score:50500, races:101 },
+];
 
-  async function refreshLeaderboard() {
-    const btn = document.getElementById('lb-refresh-btn');
-    btn.className = 'lb-refresh loading';
-    btn.textContent = '↻ Refreshing...';
-    try {
-      const data = await api('/api/leaderboard');
-      renderLeaderboard(data.top || []);
-      btn.className = 'lb-refresh done';
-      btn.textContent = '✓ Updated';
-    } catch(e) {
-      btn.className = 'lb-refresh fail';
-      btn.textContent = '✕ Failed';
-    }
-    setTimeout(() => {
-      btn.className = 'lb-refresh';
-      btn.textContent = '↻ Refresh manually';
-    }, 2000);
-  }
+function renderBlitzRows() {
+  document.getElementById('blitz-identity-list').innerHTML = blitzRows.map((row,i) => `
+    <div class="blitz-row">
+      <span class="idx">${i+1}</span>
+      <input type="text" placeholder="Name" value="${row.name}" onchange="updateBlitzRow(${i},'name',this.value)" />
+      <input type="text" placeholder="email@gmail.com" value="${row.email}" onchange="updateBlitzRow(${i},'email',this.value)" />
+      <input type="number" min="1" max="50500" value="${row.score}" onchange="updateBlitzRow(${i},'score',+this.value)" />
+      <input type="number" min="1" max="101" value="${row.races}" onchange="updateBlitzRow(${i},'races',+this.value)" />
+      <button class="btn-remove" onclick="removeBlitzRow(${i})">✕</button>
+    </div>`).join('');
+}
+function updateBlitzRow(i,k,v) { blitzRows[i][k]=v; }
+function addBlitzRow() { blitzRows.push({name:'',email:'',score:50500,races:101}); renderBlitzRows(); }
+function removeBlitzRow(i) { blitzRows.splice(i,1); renderBlitzRows(); }
+renderBlitzRows();
 
-  // ─── Render ──────────────────────────────────────────────────────────────────
-  function renderLeaderboard(top) {
-    const el = document.getElementById('lb-rows');
-    if (!top || !top.length) { el.innerHTML = '<div class="empty">No data</div>'; return; }
-    el.innerHTML = top.map(p => {
-      const rankClass = p.rank===1?'top1':p.rank===2?'top2':p.rank===3?'top3':'other';
-      return `
-        <div class="lb-row">
-          <span class="lb-rank ${rankClass}">#${p.rank}</span>
-          <span class="lb-name">${p.name}</span>
-          <div class="lb-right">
-            <span class="lb-score">${p.totalScore.toLocaleString()}</span>
-            <span class="lb-games">${p.gamesPlayed} games</span>
-          </div>
-        </div>`;
-    }).join('');
-  }
+// ─── API ──────────────────────────────────────────────────────────────────────
+function backendUrl() { return document.getElementById('backend-url').value.replace(/\/$/,''); }
+async function api(path, method='GET', body=null) {
+  const opts = { method, headers:{'Content-Type':'application/json'} };
+  if (body) opts.body = JSON.stringify(body);
+  const resp = await fetch(backendUrl()+path, opts);
+  return resp.json();
+}
 
-  function renderIdentities(identities) {
-    const el = document.getElementById('identity-cards');
-    if (!identities || !identities.length) {
-      el.innerHTML = '<div class="empty">Start a campaign to see progress</div>'; return;
-    }
-    el.innerHTML = identities.map(id => {
-      const pct = id.races > 0 ? Math.min(100, Math.round((id.racesPlayed/id.races)*100)) : 0;
-      const gap = id.targetScore ? Math.max(0, id.targetScore - id.totalScore) : '—';
-      const next = id.nextRaceIn > 0 ? `Next race in ${id.nextRaceIn}s` : '';
-      const modeLabel = id.desiredScore > 0 ? `Score ${id.desiredScore.toLocaleString()}` : `Rank #${id.targetRank}`;
-      const targetLabel = id.targetScore ? id.targetScore.toLocaleString() : (id.desiredScore > 0 ? id.desiredScore.toLocaleString() : 'Fetching...');
-      return `
-        <div class="id-card ${id.status}">
-          <div class="id-header">
-            <span class="id-name">${id.name}</span>
-            <span class="id-badge badge-${id.status}">${id.status}</span>
-          </div>
-          <div class="id-email">${id.email}</div>
-          <div class="id-stats">
-            <div class="id-stat">
-              <div class="id-stat-label">Goal</div>
-              <div class="id-stat-value">${modeLabel}</div>
-            </div>
-            <div class="id-stat">
-              <div class="id-stat-label">Target Score</div>
-              <div class="id-stat-value">${targetLabel}</div>
-            </div>
-            <div class="id-stat">
-              <div class="id-stat-label">Total Score</div>
-              <div class="id-stat-value">${id.totalScore.toLocaleString()}</div>
-            </div>
-            <div class="id-stat">
-              <div class="id-stat-label">Games</div>
-              <div class="id-stat-value">${id.racesPlayed} / ${id.races}</div>
-            </div>
-            <div class="id-stat">
-              <div class="id-stat-label">Gap Left</div>
-              <div class="id-stat-value">${typeof gap==='number'?gap.toLocaleString():gap}</div>
-            </div>
-            <div class="id-stat">
-              <div class="id-stat-label">Avg Needed</div>
-              <div class="id-stat-value">${id.avgNeeded || '—'}</div>
-            </div>
-          </div>
-          <div class="id-progress">
-            <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
-            <div class="progress-label">${pct}% complete ${next}</div>
-          </div>
-        </div>`;
-    }).join('');
-  }
+async function startCampaign() {
+  if (!identityRows.length) return alert('Add at least one identity');
+  const parallelCount = parseInt(document.getElementById('parallel-count').value);
+  const result = await api('/api/start','POST',{config:identityRows, parallelCount});
+  if (result.error) alert(result.error);
+}
+async function pauseCampaign()  { await api('/api/pause','POST'); }
+async function resumeCampaign() { await api('/api/resume','POST'); }
+async function stopCampaign()   { await api('/api/stop','POST'); }
 
-  // ─── Logs ────────────────────────────────────────────────────────────────────
-  let allLogs = [];
-  let activeFilter = 'all';
-
-  function classifyLog(msg) {
-    if (msg.includes('★') || msg.includes('REACHED') || msg.includes('complete') || msg.includes('started')) return 'highlight';
-    if (msg.includes('[429]') || msg.includes('waiting') || msg.includes('updated')) return 'warn';
-    if (msg.includes('[ERR]') || msg.includes('UNREACHABLE') || msg.includes('failed')) return 'error';
-    return '';
-  }
-
-  function setFilter(filter, btn) {
-    activeFilter = filter;
-    document.querySelectorAll('.log-filter-btn').forEach(b => b.classList.remove('active'));
-    document.querySelectorAll(`.log-filter-btn`).forEach(b => {
-      if (b.textContent.toLowerCase().includes(filter) || (filter==='all' && b.textContent==='All')) {
-        b.classList.add('active');
-      }
+async function refreshLeaderboard() {
+  ['lb-refresh-btn','blitz-lb-refresh-btn'].forEach(id => {
+    const btn = document.getElementById(id);
+    if (btn) { btn.className='lb-refresh loading'; btn.textContent='↻ Refreshing...'; }
+  });
+  try {
+    const data = await api('/api/leaderboard');
+    renderLeaderboard(data.top||[], 'lb-rows');
+    renderLeaderboard(data.top||[], 'blitz-lb-rows');
+    ['lb-refresh-btn','blitz-lb-refresh-btn'].forEach(id => {
+      const btn = document.getElementById(id);
+      if (btn) { btn.className='lb-refresh done'; btn.textContent='✓ Updated'; }
     });
-    renderLogs(allLogs);
+  } catch(e) {
+    ['lb-refresh-btn','blitz-lb-refresh-btn'].forEach(id => {
+      const btn = document.getElementById(id);
+      if (btn) { btn.className='lb-refresh fail'; btn.textContent='✕ Failed'; }
+    });
   }
+  setTimeout(()=>{
+    ['lb-refresh-btn','blitz-lb-refresh-btn'].forEach(id => {
+      const btn = document.getElementById(id);
+      if (btn) { btn.className='lb-refresh'; btn.textContent='↻ Refresh manually'; }
+    });
+  }, 2000);
+}
 
-  function buildLogHTML(logs) {
-    const filtered = activeFilter === 'all'
-      ? logs
-      : logs.filter(l => classifyLog(l.msg) === activeFilter);
-    if (!filtered.length) return '<div class="empty">No logs match this filter</div>';
-    return filtered.map(l => {
-      const cls = classifyLog(l.msg);
-      return `<div class="log-entry">
-        <span class="log-time">${l.time.slice(11,19)}</span>
-        <span class="log-msg ${cls}">${l.msg}</span>
-      </div>`;
-    }).join('');
-  }
+// ─── Render helpers ───────────────────────────────────────────────────────────
+function renderLeaderboard(top, elId='lb-rows') {
+  const el = document.getElementById(elId);
+  if (!el) return;
+  if (!top||!top.length) { el.innerHTML='<div class="empty">No data</div>'; return; }
+  el.innerHTML = top.map(p => {
+    const rc = p.rank===1?'top1':p.rank===2?'top2':p.rank===3?'top3':'other';
+    return `<div class="lb-row">
+      <span class="lb-rank ${rc}">#${p.rank}</span>
+      <span class="lb-name">${p.name}</span>
+      <div class="lb-right">
+        <span class="lb-score">${p.totalScore.toLocaleString()}</span>
+        <span class="lb-games">${p.gamesPlayed} games</span>
+      </div>
+    </div>`;
+  }).join('');
+}
 
-  function renderLogs(logs) {
-    allLogs = logs;
-    const html = buildLogHTML(logs);
-    document.getElementById('log-box').innerHTML = html || '<div class="empty">No logs yet</div>';
-    const full = document.getElementById('log-box-full');
-    if (full) full.innerHTML = html || '<div class="empty">No logs yet</div>';
-  }
+function renderIdentities(identities) {
+  const el = document.getElementById('identity-cards');
+  if (!identities||!identities.length) { el.innerHTML='<div class="empty">Start a campaign to see progress</div>'; return; }
+  el.innerHTML = identities.map(id => {
+    const pct = id.races>0?Math.min(100,Math.round((id.racesPlayed/id.races)*100)):0;
+    const gap = id.targetScore?Math.max(0,id.targetScore-id.totalScore):'—';
+    const next = id.nextRaceIn>0?`Next in ${id.nextRaceIn}s`:'';
+    const modeLabel = id.desiredScore>0?`Score ${id.desiredScore.toLocaleString()}`:`Rank #${id.targetRank}`;
+    const targetLabel = id.targetScore?id.targetScore.toLocaleString():(id.desiredScore>0?id.desiredScore.toLocaleString():'Fetching...');
+    return `<div class="id-card ${id.status}">
+      <div class="id-header"><span class="id-name">${id.name}</span><span class="id-badge badge-${id.status}">${id.status}</span></div>
+      <div class="id-email">${id.email}</div>
+      <div class="id-stats">
+        <div class="id-stat"><div class="id-stat-label">Goal</div><div class="id-stat-value">${modeLabel}</div></div>
+        <div class="id-stat"><div class="id-stat-label">Target Score</div><div class="id-stat-value">${targetLabel}</div></div>
+        <div class="id-stat"><div class="id-stat-label">Total Score</div><div class="id-stat-value">${id.totalScore.toLocaleString()}</div></div>
+        <div class="id-stat"><div class="id-stat-label">Games</div><div class="id-stat-value">${id.racesPlayed}/${id.races}</div></div>
+        <div class="id-stat"><div class="id-stat-label">Gap Left</div><div class="id-stat-value">${typeof gap==='number'?gap.toLocaleString():gap}</div></div>
+        <div class="id-stat"><div class="id-stat-label">Avg Needed</div><div class="id-stat-value">${id.avgNeeded||'—'}</div></div>
+      </div>
+      <div class="id-progress">
+        <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+        <div class="progress-label">${pct}% complete ${next}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
 
-  function openFullscreen() {
-    document.getElementById('log-overlay').classList.add('open');
-    document.getElementById('log-box-full').innerHTML = buildLogHTML(allLogs) || '<div class="empty">No logs yet</div>';
-  }
-  function closeFullscreen() {
-    document.getElementById('log-overlay').classList.remove('open');
-  }
+// ─── Logs ─────────────────────────────────────────────────────────────────────
+let allLogs = [];
+let activeFilter = 'all';
 
-  // ─── Connection + Polling ─────────────────────────────────────────────────────
-  function setConnectionStatus(ok, msg) {
-    const bar  = document.getElementById('connection-bar');
-    const dot  = document.getElementById('conn-dot');
-    const text = document.getElementById('conn-text');
-    if (ok === null) {
-      bar.className = 'connection-bar checking';
-      dot.className = 'dot dot-check';
-    } else if (ok) {
-      bar.className = 'connection-bar ok';
-      dot.className = 'dot dot-ok';
-    } else {
-      bar.className = 'connection-bar error';
-      dot.className = 'dot dot-error';
+function classifyLog(msg) {
+  if (msg.includes('★')||msg.includes('REACHED')||msg.includes('complete')||msg.includes('started')) return 'highlight';
+  if (msg.includes('[429]')||msg.includes('waiting')||msg.includes('updated')) return 'warn';
+  if (msg.includes('[ERR]')||msg.includes('UNREACHABLE')||msg.includes('failed')) return 'error';
+  return '';
+}
+
+function setFilter(filter, btn) {
+  activeFilter = filter;
+  document.querySelectorAll('.log-filter-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.log-filter-btn').forEach(b => {
+    if (b.textContent.toLowerCase().includes(filter)||(filter==='all'&&b.textContent==='All')) b.classList.add('active');
+  });
+  renderLogs(allLogs);
+}
+
+function buildLogHTML(logs) {
+  const filtered = activeFilter==='all'?logs:logs.filter(l=>classifyLog(l.msg)===activeFilter);
+  if (!filtered.length) return '<div class="empty">No logs match this filter</div>';
+  return filtered.map(l=>{
+    const cls = classifyLog(l.msg);
+    return `<div class="log-entry"><span class="log-time">${l.time.slice(11,19)}</span><span class="log-msg ${cls}">${l.msg}</span></div>`;
+  }).join('');
+}
+
+function renderLogs(logs) {
+  allLogs = logs;
+  const html = buildLogHTML(logs);
+  document.getElementById('log-box').innerHTML = html||'<div class="empty">No logs yet</div>';
+  const full = document.getElementById('log-box-full');
+  if (full) full.innerHTML = html||'<div class="empty">No logs yet</div>';
+}
+
+function openFullscreen() { document.getElementById('log-overlay').classList.add('open'); }
+function closeFullscreen() { document.getElementById('log-overlay').classList.remove('open'); }
+
+// ─── Connection + normal poll ─────────────────────────────────────────────────
+function setConnectionStatus(ok, msg) {
+  const bar=document.getElementById('connection-bar');
+  const dot=document.getElementById('conn-dot');
+  const text=document.getElementById('conn-text');
+  if (ok===null) { bar.className='connection-bar checking'; dot.className='dot dot-check'; }
+  else if (ok)   { bar.className='connection-bar ok';  dot.className='dot dot-ok'; }
+  else           { bar.className='connection-bar error'; dot.className='dot dot-error'; }
+  text.textContent = msg;
+}
+
+function updateButtons(running, paused) {
+  document.getElementById('btn-start').disabled  = running;
+  document.getElementById('btn-pause').disabled  = !running||paused;
+  document.getElementById('btn-resume').disabled = !running||!paused;
+  document.getElementById('btn-stop').disabled   = !running;
+  const pill = document.getElementById('status-pill');
+  if (blitzRunning) { pill.className='status-pill status-blitz'; pill.textContent='Blitz'; }
+  else if (!running){ pill.className='status-pill status-idle';  pill.textContent='Idle'; }
+  else if (paused)  { pill.className='status-pill status-paused';pill.textContent='Paused'; }
+  else              { pill.className='status-pill status-running';pill.textContent='Running'; }
+}
+
+async function poll() {
+  try {
+    const data = await api('/api/state');
+    setConnectionStatus(true, `Backend connected — ${backendUrl()}`);
+    updateButtons(data.running, data.paused);
+    renderIdentities(data.identities);
+    renderLogs(data.logs||[]);
+    if (data.leaderboard&&data.leaderboard.length>0) {
+      renderLeaderboard(data.leaderboard,'lb-rows');
+      renderLeaderboard(data.leaderboard,'blitz-lb-rows');
     }
-    text.textContent = msg;
+  } catch(e) {
+    setConnectionStatus(false,'Backend unreachable — check URL or wait for Render to wake up');
   }
+}
 
-  function updateButtons(running, paused) {
-    document.getElementById('btn-start').disabled  = running;
-    document.getElementById('btn-pause').disabled  = !running || paused;
-    document.getElementById('btn-resume').disabled = !running || !paused;
-    document.getElementById('btn-stop').disabled   = !running;
-    const pill = document.getElementById('status-pill');
-    if (!running) { pill.className='status-pill status-idle'; pill.textContent='Idle'; }
-    else if (paused) { pill.className='status-pill status-paused'; pill.textContent='Paused'; }
-    else { pill.className='status-pill status-running'; pill.textContent='Running'; }
-  }
+// ─── BLITZ ENGINE (runs in browser, no backend needed) ───────────────────────
+let blitzRunning = false;
+let blitzAbort   = false;
+let blitzState   = []; // per-identity live state
 
-  async function poll() {
+const BLITZ_API = 'https://api-g5leosq2cq-el.a.run.app';
+
+function uuid() {
+  return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
+    (c^crypto.getRandomValues(new Uint8Array(1))[0]&15>>c/4).toString(16));
+}
+
+function blitzLog(msg, type='') {
+  const box = document.getElementById('blitz-log-box');
+  const time = new Date().toTimeString().slice(0,8);
+  const cls = type==='ok'?'highlight':type==='warn'?'warn':type==='error'?'error':'blitz-msg';
+  const entry = document.createElement('div');
+  entry.className = 'log-entry';
+  entry.innerHTML = `<span class="log-time">${time}</span><span class="log-msg ${cls}">${msg}</span>`;
+  box.insertBefore(entry, box.firstChild);
+}
+
+function renderBlitzCards() {
+  const el = document.getElementById('blitz-cards');
+  if (!blitzState.length) { el.innerHTML='<div class="empty">Start blitz to see progress</div>'; return; }
+  el.innerHTML = blitzState.map((s,i) => {
+    const pct = s.races>0?Math.min(100,Math.round((s.racesPlayed/s.races)*100)):0;
+    const racePerMin = s.startedAt ? Math.round((s.racesPlayed/((Date.now()-s.startedAt)/60000))*10)/10 : 0;
+    return `<div class="blitz-id-card ${s.status}">
+      <div class="blitz-id-name">${s.name||'Identity '+(i+1)}</div>
+      <div class="blitz-id-email">${s.email}</div>
+      <div class="blitz-id-stats">
+        <div class="blitz-stat"><div class="blitz-stat-label">Score</div><div class="blitz-stat-value">${s.totalScore.toLocaleString()}</div></div>
+        <div class="blitz-stat"><div class="blitz-stat-label">Target</div><div class="blitz-stat-value">${s.targetScore.toLocaleString()}</div></div>
+        <div class="blitz-stat"><div class="blitz-stat-label">Races</div><div class="blitz-stat-value">${s.racesPlayed}/${s.races}</div></div>
+        <div class="blitz-stat"><div class="blitz-stat-label">Status</div><div class="blitz-stat-value">${s.status}</div></div>
+      </div>
+      <div class="blitz-progress">
+        <div class="progress-bar"><div class="progress-fill blitz-fill" style="width:${pct}%"></div></div>
+        <div class="blitz-speed">${pct}% · ${racePerMin} races/min</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function runBlitzIdentity(s) {
+  s.status = 'running';
+  s.startedAt = Date.now();
+  blitzLog(`⚡ Starting ${s.name} → ${s.targetScore} in ${s.races} races`, 'blitz-msg');
+
+  for (let i = 0; i < s.races; i++) {
+    if (blitzAbort) { s.status='stopped'; return; }
+
+    const scorePerRace = 500; // max per race
+    const payload = {
+      name: s.name, email: s.email,
+      score: scorePerRace,
+      carUsed: 'red',
+      raceTimeSeconds: parseFloat((31 + Math.random()*10 + Math.random()).toFixed(14)),
+      pickups: 18,
+      requestId: uuid()
+    };
+
     try {
-      const data = await api('/api/state');
-      setConnectionStatus(true, `Backend connected — ${backendUrl()}`);
-      updateButtons(data.running, data.paused);
-      renderIdentities(data.identities);
-      renderLogs(data.logs || []);
-      if (data.leaderboard && data.leaderboard.length > 0) renderLeaderboard(data.leaderboard);
+      const resp = await fetch(`${BLITZ_API}/leaderboard/score`, {
+        method: 'POST',
+        headers: { 'Content-Type':'application/json', 'Origin':'https://redmiturbo5.com', 'Referer':'https://redmiturbo5.com/' },
+        body: JSON.stringify(payload)
+      });
+
+      if (resp.status === 429) {
+        const data = await resp.json();
+        if (data.error && data.error.toLowerCase().includes('limit exceeded')) {
+          s.status = 'limited';
+          blitzLog(`${s.name}: game limit reached at ${s.totalScore.toLocaleString()}`, 'warn');
+          return;
+        }
+        // Score cooldown — wait 3.2s and retry same race
+        blitzLog(`${s.name}: cooldown, retrying in 3.2s...`, 'warn');
+        await new Promise(r => setTimeout(r, 3200));
+        i--; continue;
+      }
+
+      if (!resp.ok) {
+        blitzLog(`${s.name}: HTTP ${resp.status} on race ${i+1}`, 'error');
+        continue;
+      }
+
+      const data = await resp.json();
+      s.racesPlayed = data.gamesPlayed;
+      s.totalScore  = data.totalScore;
+      renderBlitzCards();
+
+      if (s.totalScore >= s.targetScore) {
+        s.status = 'done';
+        blitzLog(`★ ${s.name} DONE — ${s.totalScore.toLocaleString()} in ${s.racesPlayed} races`, 'ok');
+        renderBlitzCards();
+        return;
+      }
+
     } catch(e) {
-      setConnectionStatus(false, 'Backend unreachable — check URL or wait for Render to wake up');
+      blitzLog(`${s.name}: error — ${e.message}`, 'error');
     }
+    // NO sleep — fire next race immediately
   }
 
-  setInterval(poll, 4000);
-  refreshLeaderboard();
+  s.status = s.totalScore >= s.targetScore ? 'done' : 'completed';
+  blitzLog(`${s.name}: finished — final score ${s.totalScore.toLocaleString()}`, s.status==='done'?'ok':'warn');
+  renderBlitzCards();
+}
+
+async function startBlitz() {
+  const rows = blitzRows.filter(r => r.email.trim());
+  if (!rows.length) return alert('Add at least one identity with an email');
+
+  // Validate
+  for (const r of rows) {
+    if (!r.name.trim()) return alert(`Enter a name for ${r.email}`);
+    if (!r.email.includes('@')) return alert(`Invalid email: ${r.email}`);
+    if (r.score > 50500) return alert(`Max score is 50500 (${r.email})`);
+  }
+
+  blitzRunning = true;
+  blitzAbort   = false;
+  document.getElementById('btn-blitz-start').disabled = true;
+  document.getElementById('btn-blitz-stop').disabled  = false;
+
+  blitzState = rows.map(r => ({
+    name: r.name.trim(),
+    email: r.email.trim(),
+    targetScore: r.score,
+    races: r.races,
+    racesPlayed: 0,
+    totalScore: 0,
+    status: 'pending',
+    startedAt: null,
+  }));
+
+  renderBlitzCards();
+  document.getElementById('blitz-log-box').innerHTML = '';
+  blitzLog(`⚡ BLITZ STARTED — ${blitzState.length} identities, no delays`, 'ok');
+
+  // All identities run in parallel simultaneously
+  await Promise.all(blitzState.map(s => runBlitzIdentity(s)));
+
+  blitzRunning = false;
+  document.getElementById('btn-blitz-start').disabled = false;
+  document.getElementById('btn-blitz-stop').disabled  = true;
+  blitzLog('⚡ All identities finished', 'ok');
+}
+
+function stopBlitz() {
+  blitzAbort = true;
+  blitzState.forEach(s => { if (s.status==='running') s.status='stopped'; });
+  renderBlitzCards();
+  blitzLog('Blitz stopped by user', 'warn');
+  document.getElementById('btn-blitz-start').disabled = false;
+  document.getElementById('btn-blitz-stop').disabled  = true;
+}
+
+// ─── Init ─────────────────────────────────────────────────────────────────────
+setInterval(poll, 4000);
+refreshLeaderboard();
 </script>
 </body>
 </html>
