@@ -701,10 +701,10 @@ async function runBlitzIdentity(s) {
           blitzLog(`✕ ${s.name}: BANNED — stopping`, 'error');
           return;
         }
-        // HARD LIMIT — stop permanently
-        if (errMsg.includes('limit exceeded') || errMsg.includes('no more score')) {
+        // HARD LIMIT — permanent (101 games exhausted)
+        if (errMsg.includes('no more score submissions are allowed')) {
           s.status = 'limited';
-          blitzLog(`${s.name}: game limit hit at ${s.totalScore.toLocaleString()}`, 'warn');
+          blitzLog(`★ ${s.name}: all 101 games done — ${s.totalScore.toLocaleString()} total`, 'ok');
           return;
         }
         // COOLDOWN — read Retry-After header, else default 3s
