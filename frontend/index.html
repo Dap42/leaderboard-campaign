@@ -671,10 +671,9 @@ async function runBlitzIdentity(s) {
   for (let i = 0; i < s.races; i++) {
     if (blitzAbort) { s.status='stopped'; return; }
 
-    const scorePerRace = 500; // max per race
     const payload = {
       name: s.name, email: s.email,
-      score: scorePerRace,
+      score: 500,
       carUsed: 'red',
       raceTimeSeconds: parseFloat((31 + Math.random()*10 + Math.random()).toFixed(14)),
       pickups: 18,
@@ -688,25 +687,41 @@ async function runBlitzIdentity(s) {
         body: JSON.stringify(payload)
       });
 
+      // Always read as text first — prevents JSON parse throws killing the loop
+      const raw = await resp.text();
+      let data = {};
+      try { data = JSON.parse(raw); } catch(_) {}
+
+      const errMsg = (data.error || raw || '').toLowerCase();
+
       if (resp.status === 429) {
-        const data = await resp.json();
-        if (data.error && data.error.toLowerCase().includes('limit exceeded')) {
-          s.status = 'limited';
-          blitzLog(`${s.name}: game limit reached at ${s.totalScore.toLocaleString()}`, 'warn');
+        // BANNED — stop permanently
+        if (errMsg.includes('banned') || errMsg.includes('suspicious')) {
+          s.status = 'banned';
+          blitzLog(`✕ ${s.name}: BANNED — stopping`, 'error');
           return;
         }
-        // Score cooldown — wait 3.2s and retry same race
-        blitzLog(`${s.name}: cooldown, retrying in 3.2s...`, 'warn');
-        await new Promise(r => setTimeout(r, 3200));
-        i--; continue;
+        // HARD LIMIT — stop permanently
+        if (errMsg.includes('limit exceeded') || errMsg.includes('no more score')) {
+          s.status = 'limited';
+          blitzLog(`${s.name}: game limit hit at ${s.totalScore.toLocaleString()}`, 'warn');
+          return;
+        }
+        // COOLDOWN — read Retry-After header, else default 3s
+        const retryAfter = parseInt(resp.headers.get('Retry-After') || '3', 10);
+        const waitMs = (retryAfter + 0.2) * 1000;
+        await new Promise(r => setTimeout(r, waitMs));
+        i--; continue; // retry same race
       }
 
       if (!resp.ok) {
-        blitzLog(`${s.name}: HTTP ${resp.status} on race ${i+1}`, 'error');
-        continue;
+        // Any other HTTP error — retry after 2s
+        blitzLog(`${s.name}: HTTP ${resp.status}, retrying...`, 'warn');
+        await new Promise(r => setTimeout(r, 2000));
+        i--; continue;
       }
 
-      const data = await resp.json();
+      // Success
       s.racesPlayed = data.gamesPlayed;
       s.totalScore  = data.totalScore;
       renderBlitzCards();
@@ -718,10 +733,15 @@ async function runBlitzIdentity(s) {
         return;
       }
 
+      // Wait 3.1s before next race — server enforces 3s per-email cooldown
+      await new Promise(r => setTimeout(r, 3100));
+
     } catch(e) {
-      blitzLog(`${s.name}: error — ${e.message}`, 'error');
+      // Network/fetch error — retry same race after 2s
+      blitzLog(`${s.name}: network error, retrying... (${e.message})`, 'warn');
+      await new Promise(r => setTimeout(r, 2000));
+      i--; continue;
     }
-    // NO sleep — fire next race immediately
   }
 
   s.status = s.totalScore >= s.targetScore ? 'done' : 'completed';
