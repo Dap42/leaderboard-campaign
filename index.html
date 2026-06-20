@@ -92,7 +92,9 @@
     .lb-row:last-child { border-bottom: none; }
     .lb-rank { font-size: 12px; font-weight: 700; min-width: 26px; flex-shrink: 0; }
     .lb-rank.top1 { color: #ffd700; } .lb-rank.top2 { color: #c0c0c0; } .lb-rank.top3 { color: #cd7f32; } .lb-rank.other { color: #555; }
-    .lb-name { font-weight: 500; flex: 1; font-size: 13px; }
+    .lb-name-block { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+    .lb-name { font-weight: 500; font-size: 13px; }
+    .lb-email { font-size: 10px; color: #444; margin-top: 1px; word-break: break-all; }
     .lb-right { display: flex; flex-direction: column; align-items: flex-end; flex-shrink: 0; }
     .lb-score { color: #4caf50; font-weight: 700; font-size: 13px; }
     .lb-games { color: #444; font-size: 10px; margin-top: 1px; }
@@ -302,6 +304,17 @@
         ⚠ Blitz mode fires requests as fast as possible with no human delays. Each identity respects the API 3s cooldown only. Use for speed — not stealth.
       </div>
 
+      <div class="field-row" style="margin-bottom:12px;">
+        <label>Parallel identities</label>
+        <select id="blitz-parallel-count">
+          <option value="1">1 at a time</option>
+          <option value="2">2 at a time</option>
+          <option value="3">3 at a time</option>
+          <option value="5">5 at a time</option>
+          <option value="99" selected>All at once (max speed)</option>
+        </select>
+      </div>
+
       <div class="blitz-col-headers">
         <span></span><span>Name</span><span>Email</span><span>Score</span><span>Races</span><span></span>
       </div>
@@ -459,7 +472,10 @@ function renderLeaderboard(top, elId='lb-rows') {
     const rc = p.rank===1?'top1':p.rank===2?'top2':p.rank===3?'top3':'other';
     return `<div class="lb-row">
       <span class="lb-rank ${rc}">#${p.rank}</span>
-      <span class="lb-name">${p.name}</span>
+      <div class="lb-name-block">
+        <span class="lb-name">${p.name}</span>
+        ${p.email ? `<span class="lb-email">${p.email}</span>` : ''}
+      </div>
       <div class="lb-right">
         <span class="lb-score">${p.totalScore.toLocaleString()}</span>
         <span class="lb-games">${p.gamesPlayed} games</span>
@@ -717,8 +733,13 @@ async function startBlitz() {
   document.getElementById('blitz-log-box').innerHTML = '';
   blitzLog(`⚡ BLITZ STARTED — ${blitzState.length} identities, no delays`, 'ok');
 
-  // All identities run in parallel simultaneously
-  await Promise.all(blitzState.map(s => runBlitzIdentity(s)));
+  // Run identities in batches according to parallel count
+  const blitzParallel = parseInt(document.getElementById('blitz-parallel-count').value);
+  for (let i = 0; i < blitzState.length; i += blitzParallel) {
+    if (blitzAbort) break;
+    const batch = blitzState.slice(i, i + blitzParallel);
+    await Promise.all(batch.map(s => runBlitzIdentity(s)));
+  }
 
   blitzRunning = false;
   document.getElementById('btn-blitz-start').disabled = false;
