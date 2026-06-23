@@ -72,6 +72,8 @@ app.post('/api/blitz/score', async (req, res) => {
       },
       body: JSON.stringify({ name, email, score, carUsed, raceTimeSeconds, pickups, requestId })
     });
+    const retryAfter = upstream.headers.get('Retry-After');
+    if (retryAfter) res.set('Retry-After', retryAfter);
     const data = await upstream.json();
     res.status(upstream.status).json(data);
   } catch (e) {
